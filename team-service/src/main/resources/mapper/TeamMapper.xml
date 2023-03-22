@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.team.mapper.TeamMapper">
+
+    <resultMap id="BaseResultMap" type="com.travel.team.model.entity.Team">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="iconUrl" column="icon_url" jdbcType="VARCHAR"/>
+            <result property="coverUrl" column="cover_url" jdbcType="VARCHAR"/>
+            <result property="intro" column="intro" jdbcType="VARCHAR"/>
+            <result property="teamSize" column="team_size" jdbcType="INTEGER"/>
+            <result property="capacity" column="capacity" jdbcType="INTEGER"/>
+            <result property="newsCount" column="news_count" jdbcType="INTEGER"/>
+            <result property="travelCount" column="travel_count" jdbcType="INTEGER"/>
+            <result property="isAudit" column="is_audit" jdbcType="TINYINT"/>
+            <result property="teamState" column="team_state" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,name,
+        icon_url,cover_url,intro,
+        team_size,capacity,news_count,
+        travel_count,is_audit,team_state,
+        create_time,update_time
+    </sql>
+</mapper>
