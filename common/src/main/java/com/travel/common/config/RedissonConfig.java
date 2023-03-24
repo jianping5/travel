@@ -4,6 +4,7 @@ import lombok.Data;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
+import org.redisson.codec.KryoCodec;
 import org.redisson.config.Config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +31,7 @@ public class RedissonConfig {
         // 1. 创建配置
         Config config = new Config();
         String redisAddress = String.format("redis://%s:%s", host, port);
-        config.useSingleServer().setAddress(redisAddress).setDatabase(3).setPassword(password);
+        config.useSingleServer().setAddress(redisAddress).setDatabase(0).setPassword(password);
 
         // 配置编码器（以防乱码）
         config.setCodec(new JsonJacksonCodec());

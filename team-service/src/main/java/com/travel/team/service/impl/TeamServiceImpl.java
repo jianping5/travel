@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 */
 @Service
 public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
-    implements TeamService{
+    implements TeamService {
 
 }
 

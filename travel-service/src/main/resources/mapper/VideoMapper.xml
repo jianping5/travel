@@ -14,6 +14,7 @@
             <result property="videoUrl" column="video_url" jdbcType="VARCHAR"/>
             <result property="permission" column="permission" jdbcType="INTEGER"/>
             <result property="tag" column="tag" jdbcType="VARCHAR"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
             <result property="likeCount" column="like_count" jdbcType="INTEGER"/>
             <result property="commentCount" column="comment_count" jdbcType="INTEGER"/>
             <result property="favoriteCount" column="favorite_count" jdbcType="INTEGER"/>
@@ -27,8 +28,8 @@
         id,user_id,title,
         cover_url,team_id,intro,
         video_url,permission,tag,
-        like_count,comment_count,favorite_count,
-        view_count,article_state,create_time,
-        update_time
+        location,like_count,comment_count,
+        favorite_count,view_count,article_state,
+        create_time,update_time
     </sql>
 </mapper>

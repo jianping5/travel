@@ -57,6 +57,11 @@ public class Article implements Serializable {
     private String intro;
 
     /**
+     * 地理位置
+     */
+    private String location;
+
+    /**
      * 点赞量
      */
     private Integer likeCount;
@@ -114,6 +119,7 @@ public class Article implements Serializable {
             && (this.getPermission() == null ? other.getPermission() == null : this.getPermission().equals(other.getPermission()))
             && (this.getTag() == null ? other.getTag() == null : this.getTag().equals(other.getTag()))
             && (this.getIntro() == null ? other.getIntro() == null : this.getIntro().equals(other.getIntro()))
+            && (this.getLocation() == null ? other.getLocation() == null : this.getLocation().equals(other.getLocation()))
             && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getCommentCount() == null ? other.getCommentCount() == null : this.getCommentCount().equals(other.getCommentCount()))
             && (this.getFavoriteCount() == null ? other.getFavoriteCount() == null : this.getFavoriteCount().equals(other.getFavoriteCount()))
@@ -135,6 +141,7 @@ public class Article implements Serializable {
         result = prime * result + ((getPermission() == null) ? 0 : getPermission().hashCode());
         result = prime * result + ((getTag() == null) ? 0 : getTag().hashCode());
         result = prime * result + ((getIntro() == null) ? 0 : getIntro().hashCode());
+        result = prime * result + ((getLocation() == null) ? 0 : getLocation().hashCode());
         result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getCommentCount() == null) ? 0 : getCommentCount().hashCode());
         result = prime * result + ((getFavoriteCount() == null) ? 0 : getFavoriteCount().hashCode());
@@ -159,6 +166,7 @@ public class Article implements Serializable {
         sb.append(", permission=").append(permission);
         sb.append(", tag=").append(tag);
         sb.append(", intro=").append(intro);
+        sb.append(", location=").append(location);
         sb.append(", likeCount=").append(likeCount);
         sb.append(", commentCount=").append(commentCount);
         sb.append(", favoriteCount=").append(favoriteCount);

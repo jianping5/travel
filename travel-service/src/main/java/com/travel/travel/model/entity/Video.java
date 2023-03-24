@@ -62,6 +62,11 @@ public class Video implements Serializable {
     private String tag;
 
     /**
+     * 地理位置
+     */
+    private String location;
+
+    /**
      * 点赞量
      */
     private Integer likeCount;
@@ -120,6 +125,7 @@ public class Video implements Serializable {
             && (this.getVideoUrl() == null ? other.getVideoUrl() == null : this.getVideoUrl().equals(other.getVideoUrl()))
             && (this.getPermission() == null ? other.getPermission() == null : this.getPermission().equals(other.getPermission()))
             && (this.getTag() == null ? other.getTag() == null : this.getTag().equals(other.getTag()))
+            && (this.getLocation() == null ? other.getLocation() == null : this.getLocation().equals(other.getLocation()))
             && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getCommentCount() == null ? other.getCommentCount() == null : this.getCommentCount().equals(other.getCommentCount()))
             && (this.getFavoriteCount() == null ? other.getFavoriteCount() == null : this.getFavoriteCount().equals(other.getFavoriteCount()))
@@ -142,6 +148,7 @@ public class Video implements Serializable {
         result = prime * result + ((getVideoUrl() == null) ? 0 : getVideoUrl().hashCode());
         result = prime * result + ((getPermission() == null) ? 0 : getPermission().hashCode());
         result = prime * result + ((getTag() == null) ? 0 : getTag().hashCode());
+        result = prime * result + ((getLocation() == null) ? 0 : getLocation().hashCode());
         result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getCommentCount() == null) ? 0 : getCommentCount().hashCode());
         result = prime * result + ((getFavoriteCount() == null) ? 0 : getFavoriteCount().hashCode());
@@ -167,6 +174,7 @@ public class Video implements Serializable {
         sb.append(", videoUrl=").append(videoUrl);
         sb.append(", permission=").append(permission);
         sb.append(", tag=").append(tag);
+        sb.append(", location=").append(location);
         sb.append(", likeCount=").append(likeCount);
         sb.append(", commentCount=").append(commentCount);
         sb.append(", favoriteCount=").append(favoriteCount);

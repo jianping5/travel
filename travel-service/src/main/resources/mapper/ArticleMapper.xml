@@ -13,6 +13,7 @@
             <result property="permission" column="permission" jdbcType="INTEGER"/>
             <result property="tag" column="tag" jdbcType="VARCHAR"/>
             <result property="intro" column="intro" jdbcType="VARCHAR"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
             <result property="likeCount" column="like_count" jdbcType="INTEGER"/>
             <result property="commentCount" column="comment_count" jdbcType="INTEGER"/>
             <result property="favoriteCount" column="favorite_count" jdbcType="INTEGER"/>
@@ -25,8 +26,9 @@
     <sql id="Base_Column_List">
         id,user_id,title,
         cover_url,team_id,permission,
-        tag,intro,like_count,
-        comment_count,favorite_count,view_count,
-        article_state,create_time,update_time
+        tag,intro,location,
+        like_count,comment_count,favorite_count,
+        view_count,article_state,create_time,
+        update_time
     </sql>
 </mapper>

@@ -42,6 +42,8 @@
         <hutool.version>5.8.8</hutool.version>
         <knife4j.version>3.0.3</knife4j.version>
         <cos_api.version>5.6.89</cos_api.version>
+        <dubbo.version>3.1.8</dubbo.version>
+        <seata.version>1.5.2</seata.version>
     </properties>
 
     <dependencyManagement>
@@ -55,6 +57,13 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/org.apache.dubbo/dubbo -->
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${dubbo.version}</version>
+            </dependency>
+
 
             <!-- nacos 管理依赖 -->
             <dependency>
@@ -63,6 +72,24 @@
                 <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- 分布式事务 seata -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.seata</groupId>
+                        <artifactId>seata-spring-boot-starter</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${seata.version}</version>
             </dependency>
 
             <!-- redisson -->

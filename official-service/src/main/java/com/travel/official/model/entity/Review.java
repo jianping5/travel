@@ -4,9 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 点评表
@@ -40,6 +41,11 @@ public class Review implements Serializable {
      * 点评内容
      */
     private String content;
+
+    /**
+     * 地理位置
+     */
+    private String location;
 
     /**
      * 是否删除
@@ -76,6 +82,7 @@ public class Review implements Serializable {
             && (this.getReviewObjType() == null ? other.getReviewObjType() == null : this.getReviewObjType().equals(other.getReviewObjType()))
             && (this.getReviewObjId() == null ? other.getReviewObjId() == null : this.getReviewObjId().equals(other.getReviewObjId()))
             && (this.getContent() == null ? other.getContent() == null : this.getContent().equals(other.getContent()))
+            && (this.getLocation() == null ? other.getLocation() == null : this.getLocation().equals(other.getLocation()))
             && (this.getIsDeleted() == null ? other.getIsDeleted() == null : this.getIsDeleted().equals(other.getIsDeleted()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
@@ -90,6 +97,7 @@ public class Review implements Serializable {
         result = prime * result + ((getReviewObjType() == null) ? 0 : getReviewObjType().hashCode());
         result = prime * result + ((getReviewObjId() == null) ? 0 : getReviewObjId().hashCode());
         result = prime * result + ((getContent() == null) ? 0 : getContent().hashCode());
+        result = prime * result + ((getLocation() == null) ? 0 : getLocation().hashCode());
         result = prime * result + ((getIsDeleted() == null) ? 0 : getIsDeleted().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
@@ -107,6 +115,7 @@ public class Review implements Serializable {
         sb.append(", reviewObjType=").append(reviewObjType);
         sb.append(", reviewObjId=").append(reviewObjId);
         sb.append(", content=").append(content);
+        sb.append(", location=").append(location);
         sb.append(", isDeleted=").append(isDeleted);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);

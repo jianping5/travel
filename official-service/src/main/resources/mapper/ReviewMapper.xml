@@ -4,12 +4,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.travel.official.mapper.ReviewMapper">
 
-    <resultMap id="BaseResultMap" type="com.travel.official.model.entity.Review">
+    <resultMap id="BaseResultMap" type="generator.domain.Review">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="reviewObjType" column="review_obj_type" jdbcType="INTEGER"/>
             <result property="reviewObjId" column="review_obj_id" jdbcType="BIGINT"/>
             <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
             <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
@@ -17,7 +18,7 @@
 
     <sql id="Base_Column_List">
         id,user_id,review_obj_type,
-        review_obj_id,content,is_deleted,
-        create_time,update_time
+        review_obj_id,content,location,
+        is_deleted,create_time,update_time
     </sql>
 </mapper>

@@ -52,6 +52,11 @@ public class Comment implements Serializable {
     private String content;
 
     /**
+     * 地理位置
+     */
+    private String location;
+
+    /**
      * 点赞量
      */
     private Integer likeCount;
@@ -98,6 +103,7 @@ public class Comment implements Serializable {
             && (this.getParentUserId() == null ? other.getParentUserId() == null : this.getParentUserId().equals(other.getParentUserId()))
             && (this.getTopId() == null ? other.getTopId() == null : this.getTopId().equals(other.getTopId()))
             && (this.getContent() == null ? other.getContent() == null : this.getContent().equals(other.getContent()))
+            && (this.getLocation() == null ? other.getLocation() == null : this.getLocation().equals(other.getLocation()))
             && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getReplyCount() == null ? other.getReplyCount() == null : this.getReplyCount().equals(other.getReplyCount()))
             && (this.getIsDeleted() == null ? other.getIsDeleted() == null : this.getIsDeleted().equals(other.getIsDeleted()))
@@ -116,6 +122,7 @@ public class Comment implements Serializable {
         result = prime * result + ((getParentUserId() == null) ? 0 : getParentUserId().hashCode());
         result = prime * result + ((getTopId() == null) ? 0 : getTopId().hashCode());
         result = prime * result + ((getContent() == null) ? 0 : getContent().hashCode());
+        result = prime * result + ((getLocation() == null) ? 0 : getLocation().hashCode());
         result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getReplyCount() == null) ? 0 : getReplyCount().hashCode());
         result = prime * result + ((getIsDeleted() == null) ? 0 : getIsDeleted().hashCode());
@@ -137,6 +144,7 @@ public class Comment implements Serializable {
         sb.append(", parentUserId=").append(parentUserId);
         sb.append(", topId=").append(topId);
         sb.append(", content=").append(content);
+        sb.append(", location=").append(location);
         sb.append(", likeCount=").append(likeCount);
         sb.append(", replyCount=").append(replyCount);
         sb.append(", isDeleted=").append(isDeleted);

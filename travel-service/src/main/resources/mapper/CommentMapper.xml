@@ -12,6 +12,7 @@
             <result property="parentUserId" column="parent_user_id" jdbcType="BIGINT"/>
             <result property="topId" column="top_id" jdbcType="BIGINT"/>
             <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
             <result property="likeCount" column="like_count" jdbcType="INTEGER"/>
             <result property="replyCount" column="reply_count" jdbcType="INTEGER"/>
             <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
@@ -22,7 +23,8 @@
     <sql id="Base_Column_List">
         id,user_id,comment_obj_type,
         comment_obj_id,parent_user_id,top_id,
-        content,like_count,reply_count,
-        is_deleted,create_time,update_time
+        content,location,like_count,
+        reply_count,is_deleted,create_time,
+        update_time
     </sql>
 </mapper>

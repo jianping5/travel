@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 /**
 * @author jianping5
 * @description 针对表【comment(评论表)】的数据库操作Service实现
-* @createDate 2023-03-22 14:38:42
+* @createDate 2023-03-24 19:23:06
 */
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>

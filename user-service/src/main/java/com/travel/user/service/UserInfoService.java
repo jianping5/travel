@@ -1,7 +1,7 @@
 package com.travel.user.service;
 
-import com.travel.user.model.entity.UserInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.travel.user.model.entity.UserInfo;
 
 /**
 * @author jianping5
