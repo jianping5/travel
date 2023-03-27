@@ -1,3 +1,6 @@
+create database travel_official;
+
+use travel_official;
 create table derivative
 (
     id               bigint auto_increment comment '主键'

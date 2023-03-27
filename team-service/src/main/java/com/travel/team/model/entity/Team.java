@@ -31,7 +31,7 @@ public class Team implements Serializable {
     /**
      * 团队名
      */
-    private String name;
+    private String teamName;
 
     /**
      * 团队图标 URL
@@ -105,7 +105,7 @@ public class Team implements Serializable {
         Team other = (Team) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
-            && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
+            && (this.getTeamName() == null ? other.getTeamName() == null : this.getTeamName().equals(other.getTeamName()))
             && (this.getIconUrl() == null ? other.getIconUrl() == null : this.getIconUrl().equals(other.getIconUrl()))
             && (this.getCoverUrl() == null ? other.getCoverUrl() == null : this.getCoverUrl().equals(other.getCoverUrl()))
             && (this.getIntro() == null ? other.getIntro() == null : this.getIntro().equals(other.getIntro()))
@@ -125,7 +125,7 @@ public class Team implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
-        result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+        result = prime * result + ((getTeamName() == null) ? 0 : getTeamName().hashCode());
         result = prime * result + ((getIconUrl() == null) ? 0 : getIconUrl().hashCode());
         result = prime * result + ((getCoverUrl() == null) ? 0 : getCoverUrl().hashCode());
         result = prime * result + ((getIntro() == null) ? 0 : getIntro().hashCode());
@@ -148,7 +148,7 @@ public class Team implements Serializable {
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
         sb.append(", userId=").append(userId);
-        sb.append(", name=").append(name);
+        sb.append(", name=").append(teamName);
         sb.append(", iconUrl=").append(iconUrl);
         sb.append(", coverUrl=").append(coverUrl);
         sb.append(", intro=").append(intro);

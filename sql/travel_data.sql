@@ -1,3 +1,7 @@
+create database travel_data;
+
+use travel_data;
+
 create table behavior
 (
     id                bigint auto_increment comment '主键'
