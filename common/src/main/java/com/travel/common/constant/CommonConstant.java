@@ -2,9 +2,6 @@ package com.travel.common.constant;
 
 /**
  * 通用常量
- *
- * 
- * 
  */
 public interface CommonConstant {
 
