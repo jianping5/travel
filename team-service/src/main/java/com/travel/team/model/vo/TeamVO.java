@@ -1,9 +1,5 @@
 package com.travel.team.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.google.gson.reflect.TypeToken;
 import com.travel.common.model.dto.UserDTO;
 import com.travel.team.model.entity.Team;
 import lombok.Data;
@@ -11,7 +7,6 @@ import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author jianping5
@@ -95,17 +90,6 @@ public class TeamVO implements Serializable {
      */
     private Date updateTime;
 
-    /**
-     * 是否已点赞
-     */
-    private Boolean hasLike;
-
-    /**
-     * 是否已收藏
-     */
-    private Boolean hasFavour;
-
-    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 
     /**
@@ -126,7 +110,7 @@ public class TeamVO implements Serializable {
     /**
      * 对象转包装类
      *
-     * @param post
+     * @param team
      * @return
      */
     public static TeamVO objToVo(Team team) {

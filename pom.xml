@@ -44,6 +44,8 @@
         <cos_api.version>5.6.89</cos_api.version>
         <dubbo.version>3.1.8</dubbo.version>
         <seata.version>1.5.2</seata.version>
+        <spring-boot.version>2.7.5</spring-boot.version>
+        <elasticsearch.version>7.17.6</elasticsearch.version>
     </properties>
 
     <dependencyManagement>
@@ -97,6 +99,20 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson</artifactId>
                 <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- elasticsearch-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
+            <!--AMQP依赖，包含RabbitMQ-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-amqp</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
 
             <!-- mysql -->

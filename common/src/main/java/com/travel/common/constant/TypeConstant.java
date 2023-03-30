@@ -1,6 +1,9 @@
 package com.travel.common.constant;
 
 
+import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+
 /**
  * @author jianping5
  * @createDate 27/3/2023 下午 4:12
@@ -67,16 +70,38 @@ public enum TypeConstant {
      */
     FOLLOW(11, "关注");
 
-
-
-
-
-    private Integer type;
+    private Integer typeIndex;
 
     private String typeName;
 
-    TypeConstant(Integer type, String typeName) {
-        this.type = type;
+    TypeConstant(Integer typeIndex, String typeName) {
+        this.typeIndex = typeIndex;
         this.typeName = typeName;
+    }
+
+    public Integer getTypeIndex() {
+        return typeIndex;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * 根据 value 获取枚举
+     *
+     * @param value
+     * @return
+     */
+    public static TypeConstant getEnumByValue(String value) {
+        if (ObjectUtils.isEmpty(value)) {
+            return null;
+        }
+        for (TypeConstant anEnum : TypeConstant.values()) {
+            if (anEnum.getTypeName().equals(value)) {
+                return anEnum;
+            }
+        }
+        return null;
     }
 }

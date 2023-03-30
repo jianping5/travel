@@ -16,11 +16,19 @@ import javax.annotation.Resource;
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
-    @Resource
     private RedissonClient redissonClient;
 
-    @Resource
     private Gson gson;
+
+    @Resource
+    private void setRedissonClient(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
+    }
+
+    @Resource
+    private void setGson(Gson gson) {
+        this.gson = gson;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

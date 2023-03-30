@@ -67,8 +67,10 @@ create table message
     id               bigint auto_increment comment '主键'
         primary key,
     user_id          bigint                             not null comment '用户 id',
+    title            varchar(255)                       not null comment '消息标题',
     content          varchar(512)                       not null comment '消息内容',
-    message_obj_type int                                not null comment '消息关联类型',
+    message_user_id  bigint                             not null comment '消息关联用户 id',
+    message_obj_type int                                not null comment '消息关联对象类型',
     message_obj_id   bigint                             not null comment '消息关联对象 id',
     message_state    int      default 0                 not null comment '消息状态（0：未读 1：已读）',
     is_deleted       tinyint  default 0                 not null comment '是否删除（0：未删除 1：已删除）',

@@ -27,12 +27,22 @@ public class Message implements Serializable {
     private Long userId;
 
     /**
+     * 消息标题
+     */
+    private String title;
+
+    /**
      * 消息内容
      */
     private String content;
 
     /**
-     * 消息关联类型
+     * 消息关联用户 id
+     */
+    private Long messageUserId;
+
+    /**
+     * 消息关联对象类型
      */
     private Integer messageObjType;
 
@@ -78,7 +88,9 @@ public class Message implements Serializable {
         Message other = (Message) that;
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
+            && (this.getTitle() == null ? other.getTitle() == null : this.getTitle().equals(other.getTitle()))
             && (this.getContent() == null ? other.getContent() == null : this.getContent().equals(other.getContent()))
+            && (this.getMessageUserId() == null ? other.getMessageUserId() == null : this.getMessageUserId().equals(other.getMessageUserId()))
             && (this.getMessageObjType() == null ? other.getMessageObjType() == null : this.getMessageObjType().equals(other.getMessageObjType()))
             && (this.getMessageObjId() == null ? other.getMessageObjId() == null : this.getMessageObjId().equals(other.getMessageObjId()))
             && (this.getMessageState() == null ? other.getMessageState() == null : this.getMessageState().equals(other.getMessageState()))
@@ -93,7 +105,9 @@ public class Message implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
+        result = prime * result + ((getTitle() == null) ? 0 : getTitle().hashCode());
         result = prime * result + ((getContent() == null) ? 0 : getContent().hashCode());
+        result = prime * result + ((getMessageUserId() == null) ? 0 : getMessageUserId().hashCode());
         result = prime * result + ((getMessageObjType() == null) ? 0 : getMessageObjType().hashCode());
         result = prime * result + ((getMessageObjId() == null) ? 0 : getMessageObjId().hashCode());
         result = prime * result + ((getMessageState() == null) ? 0 : getMessageState().hashCode());
@@ -111,7 +125,9 @@ public class Message implements Serializable {
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
         sb.append(", userId=").append(userId);
+        sb.append(", title=").append(title);
         sb.append(", content=").append(content);
+        sb.append(", messageUserId=").append(messageUserId);
         sb.append(", messageObjType=").append(messageObjType);
         sb.append(", messageObjId=").append(messageObjId);
         sb.append(", messageState=").append(messageState);
