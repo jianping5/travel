@@ -7,7 +7,7 @@ create table team
     id           bigint auto_increment comment '主键'
         primary key,
     user_id      bigint                                  not null comment '创建人 id',
-    name         varchar(50)                             not null comment '团队名',
+    team_name    varchar(50)                             not null comment '团队名',
     icon_url     varchar(255)                            not null comment '团队图标 URL',
     cover_url    varchar(255)                            not null comment '团队封面 URL',
     intro        varchar(1024) default ''                not null comment '团队介绍',

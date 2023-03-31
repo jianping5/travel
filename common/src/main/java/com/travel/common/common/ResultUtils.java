@@ -3,8 +3,6 @@ package com.travel.common.common;
 /**
  * 返回工具类
  *
- * 
- *
  * @author jianping5
  */
 public class ResultUtils {

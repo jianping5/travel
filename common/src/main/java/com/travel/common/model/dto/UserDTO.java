@@ -15,7 +15,18 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UserDTO implements Serializable {
 
+    /**
+     * 用户 id（user 中的 id）
+     */
     private Long id;
 
+    /**
+     * 用户昵称
+     */
     private String userName;
+
+    /**
+     * 用户头像
+     */
+    private String userAvatar;
 }

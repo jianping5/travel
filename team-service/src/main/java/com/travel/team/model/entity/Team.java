@@ -148,7 +148,7 @@ public class Team implements Serializable {
         sb.append("Hash = ").append(hashCode());
         sb.append(", id=").append(id);
         sb.append(", userId=").append(userId);
-        sb.append(", name=").append(teamName);
+        sb.append(", teamName=").append(teamName);
         sb.append(", iconUrl=").append(iconUrl);
         sb.append(", coverUrl=").append(coverUrl);
         sb.append(", intro=").append(intro);
