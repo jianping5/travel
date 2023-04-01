@@ -1,5 +1,6 @@
 package com.travel.team.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.travel.common.model.dto.UserDTO;
 import com.travel.team.model.entity.Team;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class TeamVO implements Serializable {
     /**
      * 团队名
      */
-    private String name;
+    private String teamName;
 
     /**
      * 团队图标 URL

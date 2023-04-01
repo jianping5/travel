@@ -29,8 +29,7 @@ public class TeamDataSource implements DataSource<TeamVDTO> {
         teamQueryRequest.setCurrent(pageNum);
         teamQueryRequest.setPageSize(pageSize);
 
-        Page<TeamDTO> teamPage = innerTeamService.searchFromEs(teamQueryRequest);
-        return innerTeamService.getTeamVOPage(teamPage);
+        return innerTeamService.searchFromEs(teamQueryRequest);
     }
 }
 

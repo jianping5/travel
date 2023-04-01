@@ -1,10 +1,10 @@
-package com.travel.common.model.es;
+package com.travel.team.model.dto.team;
 
-import com.travel.common.model.dto.TeamDTO;
-import com.travel.common.model.vo.TeamVDTO;
+import com.travel.team.model.entity.Team;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -15,6 +15,8 @@ import java.util.Date;
  * @author jianping5
  * @createDate 28/3/2023 下午 5:36
  */
+// todo 取消注释开启 ES（须先配置 ES）
+@Document(indexName = "team")
 @Data
 public class TeamEsDTO implements Serializable {
 
@@ -42,6 +44,11 @@ public class TeamEsDTO implements Serializable {
     private String intro;
 
     /**
+     * 团队状态（0：正常 1：异常 2：已解散）
+     */
+    private Integer teamState;
+
+    /**
      * 创建时间
      */
     @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = DATE_TIME_PATTERN)
@@ -53,25 +60,21 @@ public class TeamEsDTO implements Serializable {
     @Field(index = false, store = true, type = FieldType.Date, format = {}, pattern = DATE_TIME_PATTERN)
     private Date updateTime;
 
-    /**
-     * 是否删除
-     */
-    private Integer isDelete;
 
     private static final long serialVersionUID = 1L;
 
     /**
      * 包装类转对象
      *
-     * @param teamVO
+     * @param teamEsDTO
      * @return
      */
-    public static TeamDTO voToObj(TeamVDTO teamVO) {
-        if (teamVO == null) {
+    public static Team dtoToObj(TeamEsDTO teamEsDTO) {
+        if (teamEsDTO == null) {
             return null;
         }
-        TeamDTO team = new TeamDTO();
-        BeanUtils.copyProperties(teamVO, team);
+        Team team = new Team();
+        BeanUtils.copyProperties(teamEsDTO, team);
         return team;
     }
 
@@ -81,14 +84,14 @@ public class TeamEsDTO implements Serializable {
      * @param team
      * @return
      */
-    public static TeamVDTO objToVo(TeamDTO team) {
+    public static TeamEsDTO objToDto(Team team) {
         if (team == null) {
             return null;
         }
-        TeamVDTO teamVO = new TeamVDTO();
-        BeanUtils.copyProperties(team, teamVO);
+        TeamEsDTO teamEsDTO = new TeamEsDTO();
+        BeanUtils.copyProperties(team, teamEsDTO);
 
-        return teamVO;
+        return teamEsDTO;
     }
 
 }

@@ -52,9 +52,9 @@ public class InnerUserServiceImpl implements InnerUserService {
     public List<UserDTO> listByIds(Set<Long> userIdList) {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("user_id", userIdList);
-        queryWrapper.select("user_name");
-        queryWrapper.select("user_avatar");
-        List<UserDTO> userDTOList = userInfoService.list(queryWrapper).stream()
+        queryWrapper.select("user_id", "user_name", "user_avatar");
+        List<UserInfo> userInfoList = userInfoService.list(queryWrapper);
+        List<UserDTO> userDTOList = userInfoList.stream()
                 .map(userInfo -> new UserDTO(userInfo.getUserId(), userInfo.getUserName(), userInfo.getUserAvatar()))
                 .collect(Collectors.toList());
 

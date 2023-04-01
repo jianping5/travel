@@ -28,7 +28,7 @@ public class TeamVDTO implements Serializable {
     /**
      * 团队名
      */
-    private String name;
+    private String teamName;
 
     /**
      * 团队图标 URL

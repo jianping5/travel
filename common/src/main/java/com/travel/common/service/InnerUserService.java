@@ -19,9 +19,10 @@ public interface InnerUserService {
      */
     UserDTO getUser(Long id);
 
-
     /**
      * 根据 用户 id 数组获取用户数组
+     * @param userIdList
+     * @return
      */
     List<UserDTO> listByIds(Set<Long> userIdList);
 
