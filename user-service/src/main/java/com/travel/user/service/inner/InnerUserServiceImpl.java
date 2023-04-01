@@ -39,9 +39,7 @@ public class InnerUserServiceImpl implements InnerUserService {
     public UserDTO getUser(Long id) {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", id);
-        queryWrapper.select("user_id");
-        queryWrapper.select("user_name");
-        queryWrapper.select("user_avatar");
+        queryWrapper.select("user_id", "user_name", "user_avatar");
         UserInfo userInfo = userInfoService.getOne(queryWrapper);
 
         UserDTO userDTO = new UserDTO(id, userInfo.getUserName(), userInfo.getUserAvatar());
