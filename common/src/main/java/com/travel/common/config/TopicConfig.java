@@ -1,6 +1,9 @@
-package com.travel.team.config;
+package com.travel.common.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -59,6 +62,26 @@ public class TopicConfig {
     @Bean
     public Binding bindingQueue2(Queue teamQueue, TopicExchange topicExchange) {
         return BindingBuilder.bind(teamQueue).to(topicExchange).with("team.#");
+    }
+
+    /**
+     * 声明第三个队列
+     * @return
+     */
+    @Bean
+    public Queue derivativeQueue() {
+        return new Queue("travel.derivative");
+    }
+
+    /**
+     * 绑定队列 3 到 topic 交换机
+     * @param derivativeQueue
+     * @param topicExchange
+     * @return
+     */
+    @Bean
+    public Binding bindingQueue3(Queue derivativeQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(derivativeQueue).to(topicExchange).with("cache.#");
     }
 
 }

@@ -1,11 +1,10 @@
-package com.travel.team.job;
+package com.travel.official.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
-import com.travel.team.model.entity.Team;
-import com.travel.team.model.vo.TeamVO;
-import com.travel.team.service.TeamService;
+import com.travel.official.model.entity.Derivative;
+import com.travel.official.model.vo.DerivativeVO;
+import com.travel.official.service.DerivativeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.redisson.api.RList;
@@ -13,7 +12,6 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
 import java.time.Duration;
@@ -33,7 +31,7 @@ public class UpdateCache {
     private RedissonClient redissonClient;
 
     @Resource
-    private TeamService teamService;
+    private DerivativeService derivativeService;
 
     @Resource
     private Gson gson;
@@ -42,14 +40,14 @@ public class UpdateCache {
      * 更新缓存
      */
     public void execute() {
-        RLock lock = redissonClient.getLock("travel:precache:team:lock");
+        RLock lock = redissonClient.getLock("travel:precache:derivative:lock");
         try {
             // 只有一个线程能获取到锁
             if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
                 System.out.println("getLock: " + Thread.currentThread().getId());
 
                 // 缓存 key
-                String redisKey = "travel:team:recommend";
+                String redisKey = "travel:derivative:recommend";
 
                 // 判断缓存是否存在，若存在则直接退出
                 RList<Object> oldList = redissonClient.getList(redisKey);
@@ -58,17 +56,17 @@ public class UpdateCache {
                 }
 
                 // 查询推荐的团队列表（分页查询）
-                QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
-                teamQueryWrapper.last("order by 5*travel_count+3*news_count+2*team_size desc limit 50");
-                List<Team> teamList = teamService.list(teamQueryWrapper);
-                List<TeamVO> teamVOList = teamList.stream().map(team -> teamService.getTeamVO(team)).collect(Collectors.toList());
+                QueryWrapper<Derivative> derivativeQueryWrapper = new QueryWrapper<>();
+                derivativeQueryWrapper.last("order by 5*obtain_count+3*view_count desc limit 50");
+                List<Derivative> derivativeList = derivativeService.list(derivativeQueryWrapper);
+                List<DerivativeVO> derivativeVOList = derivativeList.stream().map(derivative -> derivativeService.getDerivativeVO(derivative)).collect(Collectors.toList());
 
                 // 写缓存
                 try {
                     // todo: 需要转换成 json 格式再添加吗
                     RList<String> list = redissonClient.getList(redisKey);
-                    List<String> teamVOStrList = teamVOList.stream().map(teamVO -> gson.toJson(teamVO)).collect(Collectors.toList());
-                    list.addAll(teamVOStrList);
+                    List<String> derivativeVOStrList = derivativeVOList.stream().map(derivativeVO -> gson.toJson(derivativeVO)).collect(Collectors.toList());
+                    list.addAll(derivativeVOStrList);
                     list.expire(Duration.ofHours(24));
                 } catch (Exception e) {
                     log.error("redis set key error", e);
@@ -76,7 +74,7 @@ public class UpdateCache {
 
             }
         } catch (InterruptedException e) {
-            log.error("doCacheRecommendTeam error", e);
+            log.error("doCacheRecommendDerivative error", e);
         } finally {
             // 只能释放自己的锁
             if (lock.isHeldByCurrentThread()) {

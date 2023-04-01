@@ -42,8 +42,6 @@ public class TeamController {
     @Resource
     private TeamService teamService;
 
-    // region 增删改查
-
     /**
      * 创建团队
      *
@@ -247,8 +245,6 @@ public class TeamController {
 
         return ResultUtils.success(teamService.listMyTeam(userId));
     }
-
-    // endregion
 
     /**
      * 更换团队（加入团队、退出团队、踢出成员）

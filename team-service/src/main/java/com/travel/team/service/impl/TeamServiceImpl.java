@@ -1,6 +1,5 @@
 package com.travel.team.service.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -12,12 +11,11 @@ import com.travel.common.constant.CommonConstant;
 import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
 import com.travel.common.model.dto.MessageDTO;
+import com.travel.common.model.dto.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerTravelService;
 import com.travel.common.service.InnerUserService;
-import com.travel.common.utils.SpringContextUtils;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
 import com.travel.team.mapper.TeamMapper;
@@ -28,29 +26,21 @@ import com.travel.team.model.entity.Team;
 import com.travel.team.model.entity.TeamApply;
 import com.travel.team.model.entity.TeamNews;
 import com.travel.team.model.entity.TeamWall;
-import com.travel.team.model.vo.TeamNewsVO;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamApplyService;
-import com.travel.team.service.TeamNewsService;
 import com.travel.team.service.TeamService;
-import com.travel.team.service.TeamWallService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -142,34 +132,30 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // 1. 关联查询用户信息
         Set<Long> userIdSet = teamList.stream().map(Team::getUserId).collect(Collectors.toSet());
         // 这样做的好处是将 用户 id 和其对应的信息直接对应起来，方便后续获取（而不用遍历获取）
-        Map<Long, List<UserDTO>> userIdUserListMap = innerUserService.listByIds(userIdSet).stream()
-                .collect(Collectors.groupingBy(UserDTO::getId));
+
 /*        // 2. 已登录，获取用户点赞、收藏状态
-        Map<Long, Boolean> postIdHasLikeMap = new HashMap<>();
+        Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
         Map<Long, Boolean> postIdHasFavourMap = new HashMap<>();
-        User loginUser = UserHolder.getUser();
+        User loginUser = userService.getLoginUserPermitNull(request);
         if (loginUser != null) {
-            Set<Long> teamIdSet = teamList.stream().map(Team::getId).collect(Collectors.toSet());
-
-            // todo: 获取点赞（从 redis 中获取）并设置到 teamVO 中
-
-
-            // todo: 获取收藏（从 redis 中获取）并设置到 teamVO 中
-
+            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
+            loginUser = userService.getLoginUser(request);
+            // 获取点赞
+            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
+            postThumbQueryWrapper.in("postId", postIdSet);
+            postThumbQueryWrapper.eq("userId", loginUser.getId());
+            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
+            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
+            // 获取收藏
+            QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
+            postFavourQueryWrapper.in("postId", postIdSet);
+            postFavourQueryWrapper.eq("userId", loginUser.getId());
+            List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
+            postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
         }*/
-/*        // 填充信息
-        List<TeamVO> postVOList = teamList.stream().map(post -> {
-            TeamVO teamVO = TeamVO.objToVo(post);
-            Long userId = post.getUserId();
-            UserDTO userDTO = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                userDTO = userIdUserListMap.get(userId).get(0);
-            }
-            teamVO.setUser(userDTO);
-            teamVO.setHasLike(teamIdHasLikeMap.getOrDefault(post.getId(), false));
-            teamVO.setHasFavour(teamIdHasFavourMap.getOrDefault(post.getId(), false));
-            return teamVO;
-        }).collect(Collectors.toList());*/
+
+        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
+        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
 
         // 填充信息
         List<TeamVO> postVOList = teamList.stream().map(post -> {
@@ -210,7 +196,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.like("name", searchText).or().like("intro", searchText);
+            queryWrapper.like("team_name", searchText).or().like("intro", searchText);
         }
         queryWrapper.like(StringUtils.isNotBlank(teamName), "team_name", teamName);
         queryWrapper.like(StringUtils.isNotBlank(intro), "intro", intro);
@@ -317,8 +303,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             ThrowUtils.throwIf(joined, ErrorCode.OPERATION_ERROR, "不要重复加入团队");
 
             // 需要申请
-            Boolean isAudit = team.getIsAudit();
-            if (BooleanUtils.isTrue(isAudit)) {
+            Integer isAudit = team.getIsAudit();
+            if (isAudit == 1) {
                 // 加入团队申请表中
                 TeamApply teamApply = new TeamApply();
                 teamApply.setUserId(userId);
@@ -328,7 +314,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             }
 
             // 无需申请
-            if (BooleanUtils.isFalse(isAudit)) {
+            if (isAudit == 0) {
                 // 加入团队
                 innerUserService.changeTeam(userId, teamId, 0);
 
@@ -424,12 +410,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         List<TeamVO> teamVOList = new ArrayList<>();
 
         // 判断有无缓存
-        RList<TeamVO> teamVORList = redissonClient.getList("travel:team:recommend");
+        RList<String> teamVORList = redissonClient.getList("travel:team:recommend");
 
         // 若有，则直接从缓存中读取
         if (CollectionUtils.isNotEmpty(teamVORList)) {
             for (long i = current; i < size; i++) {
-                teamVOList.add(teamVORList.get((int) i));
+                String json = teamVORList.get((int) i);
+                TeamVO teamVO = gson.fromJson(json, TeamVO.class);
+                teamVOList.add(teamVO);
             }
             return teamVOList;
         }

@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.Data;
 
 /**
  * 团队表
+ * @author jianping5
  * @TableName team
  */
 @TableName(value ="team")
@@ -71,7 +71,7 @@ public class Team implements Serializable {
     /**
      * 是否需要审核（0：不需要 1：需要）
      */
-    private Boolean isAudit;
+    private Integer isAudit;
 
     /**
      * 团队状态（0：正常 1：异常 2：已解散）
@@ -81,12 +81,12 @@ public class Team implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
