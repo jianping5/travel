@@ -216,7 +216,28 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
-    
+    @PostMapping("/login/test")
+    public BaseResponse userLoginTest(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+
+        // 获取user
+        User user = userService.getById(1L);
+
+        // 生成 token
+        String token = UUID.fastUUID().toString(true);
+
+        // 以 token 为键，将过滤后的user存入 redis
+        Map<String, Object> userMap = BeanUtil.beanToMap(user, new HashMap<>(),
+                CopyOptions.create()
+                        .setIgnoreProperties("createTime", "updateTime", "userInfo")
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        RMap<String, Object> map = redissonClient.getMap("user_login: " + token);
+        map.putAll(userMap);
+        map.expire(Duration.ofSeconds(2592000));
+
+        // 给响应头设置token
+        response.setHeader("token", token);
+        return ResultUtils.success(user);
+    }
 
 
 
