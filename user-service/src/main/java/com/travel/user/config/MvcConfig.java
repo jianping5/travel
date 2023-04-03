@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.travel.user.interceptor.RefreshLoginInterceptor;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author jianping5
@@ -25,6 +25,6 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RefreshLoginInterceptor(redissonClient, gson)).order(0);
+       registry.addInterceptor(new RefreshLoginInterceptor(redissonClient, gson)).order(0);
     }
 }

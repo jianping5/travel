@@ -1,5 +1,7 @@
 package com.travel.common.common;
 
+import org.apache.poi.ss.formula.functions.T;
+
 /**
  * 返回工具类
  *
@@ -48,5 +50,9 @@ public class ResultUtils {
      */
     public static BaseResponse error(ErrorCode errorCode, String message) {
         return new BaseResponse(errorCode.getCode(), null, message);
+    }
+
+    public static <T> BaseResponse<T> success(T data, String message) {
+        return new BaseResponse(data, message);
     }
 }

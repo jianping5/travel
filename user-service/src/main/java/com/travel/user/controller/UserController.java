@@ -1,22 +1,37 @@
 package com.travel.user.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import com.google.gson.Gson;
+import com.travel.common.common.BaseResponse;
+import com.travel.common.common.ErrorCode;
+import com.travel.common.common.ResultUtils;
+import com.travel.common.exception.BusinessException;
 import com.travel.common.service.InnerTeamService;
+import com.travel.user.constant.CodeType;
+import com.travel.user.constant.CredentialType;
 import com.travel.user.model.entity.User;
+import com.travel.user.model.request.CodeCheckRequest;
+import com.travel.user.model.request.CodeSendRequest;
+import com.travel.user.model.request.LoginRequest;
+import com.travel.user.model.request.RegisterRequest;
+import com.travel.user.service.UserService;
+import com.travel.user.utils.FormatValidator;
 import com.travel.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.redisson.api.RBucket;
-import org.redisson.api.RedissonClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.redisson.api.*;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,8 +43,11 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/user")
 public class UserController {
 
-    @Resource
+    @Resource()
     private RedissonClient redissonClient;
+
+    @Resource
+    private UserService userService;
 
     @DubboReference
     private InnerTeamService innerTeamService;
@@ -37,30 +55,176 @@ public class UserController {
     @Resource
     private Gson gson;
 
-    @GetMapping("/login")
-    public String userLogin(HttpServletResponse response) {
-        // todo: 校验是否登录，登录成功则获取对应的 user
-        User user = new User();
+    @PostMapping("/code/send")
+    public BaseResponse codeSend(@RequestBody CodeSendRequest codeSendRequest){
 
-        user.setId(1L);
+        //参数判空
+        if(codeSendRequest == null|| ObjectUtils.anyNull(codeSendRequest.getCredential(), codeSendRequest.getCodeType(), codeSendRequest.getCredentialType())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        //检验凭证格式
+        String credential = codeSendRequest.getCredential();
+        if(!FormatValidator.validateEmail(credential)&&!FormatValidator.validatePhone(credential)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"凭证格式不合法");
+        }
+
+        //发送验证码
+        String code = null;
+        if(CredentialType.isEmail(codeSendRequest.getCredentialType())){
+            //发送邮箱验证码
+            code = userService.sendEmailCode(codeSendRequest.getCredential());
+        }else if(CredentialType.isPhoneNumber(codeSendRequest.getCredentialType())){
+            // todo : 手机验证码发送
+        }
+
+        //将验证码存入redis
+        if(code==null||code.equals("")){
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR);
+        }else {
+            RBucket<String> bucket = null;
+            Integer codeType = codeSendRequest.getCodeType();
+            Integer credentialType = codeSendRequest.getCredentialType();
+            //redis验证码key格式：travel:user:code:验证码类型-凭证类型-凭证
+            if(CodeType.isCodeType(codeType)){
+                if(CodeType.equals(codeType,CodeType.REGISTER)){
+                    bucket = redissonClient.getBucket("travel:user:code:"+codeType+"-"+
+                            credentialType+"-"+ codeSendRequest.getCredential());
+                }else if(CodeType.equals(codeType,CodeType.LOGIN)){
+                    bucket = redissonClient.getBucket("travel:user:code:"+codeType+"-"+
+                            credentialType+"-"+ codeSendRequest.getCredential());
+                }else if(CodeType.equals(codeType,CodeType.CHANGE_PASSWORD)){
+                    bucket = redissonClient.getBucket("travel:user:code:"+codeType+"-"+
+                            credentialType+"-"+ codeSendRequest.getCredential());
+                }
+                bucket.set(code);
+                bucket.expire(Duration.ofSeconds(300));
+                //返回操作结果
+                return ResultUtils.success(null);
+            }else {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"请求格式不合法");
+            }
+        }
+    }
+
+    @PostMapping("/code/check")
+    public BaseResponse<String> codeCheck(@RequestBody CodeCheckRequest codeCheckRequest){
+
+        //参数判空
+        if(codeCheckRequest == null||ObjectUtils.anyNull(codeCheckRequest.getCredential(), codeCheckRequest.getCode(), codeCheckRequest.getCredentialType())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        //从redis获取验证码
+        String credential = codeCheckRequest.getCredential();
+        Integer credentialType = codeCheckRequest.getCredentialType();
+        Integer codeType = codeCheckRequest.getCodeType();
+        RBucket<String> bucket = redissonClient.getBucket("travel:user:code:" + codeType + "-" + credentialType + "-" + credential);
+        String redisCode = bucket.get();
+
+        //校验验证码
+        if(redisCode==null){
+            return ResultUtils.error(null,"验证码不存在，请重新发送验证码");
+        }else {
+            if(redisCode.equals(codeCheckRequest.getCode())){
+                bucket.expire(Duration.ZERO);
+                //注册用途：生成注册码并存入redis
+                if(CodeType.equals(codeType,CodeType.REGISTER)){
+                    String registerCode = UUID.fastUUID().toString(true);
+                    RSetCache<String> setCache = redissonClient.getSetCache("travel:user:register-code");
+                    setCache.add(registerCode,900,TimeUnit.SECONDS);
+                    return ResultUtils.success(registerCode,"验证通过");
+                }
+                //todo：其余用途的验证码校验
+                return ResultUtils.success(null,"验证通过");
+            }else {
+                return ResultUtils.error(null,"验证码错误");
+            }
+        }
+    }
+
+    @PostMapping("/register")
+    public BaseResponse userRegister(@RequestBody RegisterRequest registerRequest){
+
+        //参数判空
+        if(registerRequest==null||ObjectUtils.anyNull(registerRequest.getCredential(),
+                registerRequest.getRegisterCode(),registerRequest.getCredentialType())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        //检验两次密码是否一致
+        if(!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())){
+            ResultUtils.error(ErrorCode.PARAMS_ERROR,"两次输入密码不一致");
+        }
+
+        //从redis获取注册码
+        String credential = registerRequest.getCredential();
+        Integer credentialType = registerRequest.getCredentialType();
+        String registerCode = registerRequest.getRegisterCode();
+        String password = registerRequest.getPassword();
+        RSetCache<String> setCache = redissonClient.getSetCache("travel:user:register-code");
+        boolean contains = setCache.contains(registerCode);
+        if(contains){
+            setCache.remove(registerCode);
+            return userService.userRegister(credential, credentialType, password);
+        }else {
+            return ResultUtils.error(ErrorCode.NO_AUTH_ERROR,"注册码不存在");
+        }
+    }
+
+    @PostMapping("/login")
+    public BaseResponse userLogin(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+
+        //参数判空
+        if(loginRequest == null||!CredentialType.isValid(loginRequest.getCredentialType())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        //根据登录类型执行登录业务
+        BaseResponse<User> baseResponse = null;
+        Integer type = loginRequest.getCredentialType();
+        if(CredentialType.isAccount(type)){
+            // todo:待完成账号密码登录
+        }else if(CredentialType.isEmail(type)){
+            baseResponse = userService.loginByEmail(loginRequest.getCredential(), loginRequest.getPasscode());
+        }else if(CredentialType.isPhoneNumber(type)){
+            // todo:待完成手机验证码登录
+        }else {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 获取user
+        User user = baseResponse.getData();
+        if(user==null){
+            return ResultUtils.error(ErrorCode.FORBIDDEN_ERROR,baseResponse.getMessage());
+        }
 
         // 生成 token
         String token = UUID.fastUUID().toString(true);
 
-        // 以 token 为键，user 的 Json 字符串为值，存入 redis
-        RBucket<String> bucket = redissonClient.getBucket("user_login: " + token);
-        String userJson = gson.toJson(user, User.class);
-        bucket.set(userJson, 2592000, TimeUnit.SECONDS);
+        // 以 token 为键，将过滤后的user存入 redis
+        Map<String, Object> userMap = BeanUtil.beanToMap(user, new HashMap<>(),
+                CopyOptions.create()
+                        .setIgnoreProperties("createTime", "updateTime", "userInfo")
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        RMap<String, Object> map = redissonClient.getMap("user_login: " + token);
+        map.putAll(userMap);
+        map.expire(Duration.ofSeconds(2592000));
 
+        // 给响应头设置token
         response.setHeader("token", token);
-        return token;
+        return ResultUtils.success(user);
     }
+
+    
+
+
+
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         User user = UserHolder.getUser();
         log.info(user.toString());
-
 
         String token = request.getHeader("token");
         log.info("token logout: " + token);
@@ -70,7 +234,6 @@ public class UserController {
         if (bucket != null) {
             bucket.delete();
         }
-
         return "logout";
     }
 }

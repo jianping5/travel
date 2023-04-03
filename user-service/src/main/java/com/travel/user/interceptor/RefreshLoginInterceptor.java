@@ -1,11 +1,14 @@
 package com.travel.user.interceptor;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.google.gson.Gson;
 import com.travel.user.model.entity.User;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
+import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -51,19 +54,25 @@ public class RefreshLoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
+//        //若不为白名单
+//        if(white == null && token == null){
+//            return false;
+//        }
+
         if (redissonClient == null) {
             log.info("null redissonClient");
         }
+
         // 根据 token 获取 user，并设置到 UserHodler 中，便于后续接口调用
-        RBucket<String> bucket = redissonClient.getBucket("user_login: " + token);
+        RMap<Object, Object> map = redissonClient.getMap("user_login: " + token);
+
         // 获取并刷新 user
-        String userJson = bucket.getAndExpire(Duration.ofSeconds(2592000));
-        User user = gson.fromJson(userJson, User.class);
+        User user = BeanUtil.fillBeanWithMap(map, new User(), false);
+        map.expire(Duration.ofSeconds(2592000));
 
         log.info("user: " + user);
 
         UserHolder.saveUser(user);
-
         return true;
 
 
