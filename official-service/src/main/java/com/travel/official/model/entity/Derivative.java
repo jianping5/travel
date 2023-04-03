@@ -57,6 +57,11 @@ public class Derivative implements Serializable {
     private Integer obtainMethod;
 
     /**
+     * 周边数量
+     */
+    private Integer totalCount;
+
+    /**
      * 类型 id
      */
     private Integer typeId;
@@ -109,6 +114,7 @@ public class Derivative implements Serializable {
             && (this.getPrice() == null ? other.getPrice() == null : this.getPrice().equals(other.getPrice()))
             && (this.getIntro() == null ? other.getIntro() == null : this.getIntro().equals(other.getIntro()))
             && (this.getObtainMethod() == null ? other.getObtainMethod() == null : this.getObtainMethod().equals(other.getObtainMethod()))
+            && (this.getTotalCount() == null ? other.getTotalCount() == null : this.getTotalCount().equals(other.getTotalCount()))
             && (this.getTypeId() == null ? other.getTypeId() == null : this.getTypeId().equals(other.getTypeId()))
             && (this.getViewCount() == null ? other.getViewCount() == null : this.getViewCount().equals(other.getViewCount()))
             && (this.getObtainCount() == null ? other.getObtainCount() == null : this.getObtainCount().equals(other.getObtainCount()))
@@ -129,6 +135,7 @@ public class Derivative implements Serializable {
         result = prime * result + ((getPrice() == null) ? 0 : getPrice().hashCode());
         result = prime * result + ((getIntro() == null) ? 0 : getIntro().hashCode());
         result = prime * result + ((getObtainMethod() == null) ? 0 : getObtainMethod().hashCode());
+        result = prime * result + ((getTotalCount() == null) ? 0 : getTotalCount().hashCode());
         result = prime * result + ((getTypeId() == null) ? 0 : getTypeId().hashCode());
         result = prime * result + ((getViewCount() == null) ? 0 : getViewCount().hashCode());
         result = prime * result + ((getObtainCount() == null) ? 0 : getObtainCount().hashCode());
@@ -152,6 +159,7 @@ public class Derivative implements Serializable {
         sb.append(", price=").append(price);
         sb.append(", intro=").append(intro);
         sb.append(", obtainMethod=").append(obtainMethod);
+        sb.append(", totalCount=").append(totalCount);
         sb.append(", typeId=").append(typeId);
         sb.append(", viewCount=").append(viewCount);
         sb.append(", obtainCount=").append(obtainCount);

@@ -4,6 +4,7 @@ import com.travel.common.common.PageRequest;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @author jianping5
@@ -30,7 +31,7 @@ public class TeamQueryRequest extends PageRequest implements Serializable {
     /**
      * 团队名
      */
-    private String name;
+    private String teamName;
 
     /**
      * 团队介绍

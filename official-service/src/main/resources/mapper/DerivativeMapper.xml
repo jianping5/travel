@@ -13,6 +13,7 @@
             <result property="price" column="price" jdbcType="DOUBLE"/>
             <result property="intro" column="intro" jdbcType="VARCHAR"/>
             <result property="obtainMethod" column="obtain_method" jdbcType="TINYINT"/>
+            <result property="totalCount" column="total_count" jdbcType="INTEGER"/>
             <result property="typeId" column="type_id" jdbcType="INTEGER"/>
             <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
             <result property="obtainCount" column="obtain_count" jdbcType="INTEGER"/>
@@ -24,8 +25,8 @@
     <sql id="Base_Column_List">
         id,user_id,official_id,
         derivative_name,cover_url,price,
-        intro,obtain_method,type_id,
-        view_count,obtain_count,derivative_state,
-        create_time,update_time
+        intro,obtain_method,total_count,
+        type_id,view_count,obtain_count,
+        derivative_state,create_time,update_time
     </sql>
 </mapper>

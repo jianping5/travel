@@ -7,11 +7,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 
-import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
  * 团队表
+ * @author jianping5
  * @TableName team
  */
 @TableName(value ="team")

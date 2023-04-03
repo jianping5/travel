@@ -12,6 +12,7 @@ create table derivative
     price            double   default 0                 not null comment '周边价格',
     intro            varchar(255)                       not null comment '周边介绍',
     obtain_method    tinyint  default 0                 not null comment '获取方式（0：现金 1：代币）',
+    total_count      int      default 0                 not null comment '周边数量',
     type_id          int                                not null comment '类型 id',
     view_count       int      default 0                 not null comment '浏览量',
     obtain_count     int      default 0                 not null comment '周边获取次数',

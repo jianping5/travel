@@ -25,7 +25,7 @@ public class TeamUpdateRequest implements Serializable {
     /**
      * 团队名
      */
-    private String name;
+    private String teamName;
 
     /**
      * 团队图标 URL
@@ -41,6 +41,11 @@ public class TeamUpdateRequest implements Serializable {
      * 团队介绍
      */
     private String intro;
+
+    /**
+     * 团队容量
+     */
+    private Integer capacity;
 
     /**
      * 是否需要审核（0：不需要 1：需要）

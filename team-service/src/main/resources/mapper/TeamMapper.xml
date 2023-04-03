@@ -28,4 +28,9 @@
         travel_count,is_audit,team_state,
         create_time,update_time
     </sql>
+    <select id="listTeamWithDelete" resultType="com.travel.team.model.entity.Team">
+        select <include refid="Base_Column_List"/>
+        from team
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>

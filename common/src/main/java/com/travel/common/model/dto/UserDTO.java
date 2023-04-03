@@ -29,4 +29,6 @@ public class UserDTO implements Serializable {
      * 用户头像
      */
     private String userAvatar;
+
+    private static final long serialVersionUID = 1L;
 }

@@ -1,7 +1,14 @@
 package com.travel.team.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.team.model.dto.team.TeamQueryRequest;
+import com.travel.team.model.dto.wall.TeamWallQueryRequest;
+import com.travel.team.model.entity.Team;
 import com.travel.team.model.entity.TeamWall;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.travel.team.model.vo.TeamVO;
+import com.travel.team.model.vo.TeamWallVO;
 
 /**
 * @author jianping5
@@ -9,5 +16,49 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2023-03-22 14:40:38
 */
 public interface TeamWallService extends IService<TeamWall> {
+
+    /**
+     * 校验 TeamWall
+     * @param teamWall
+     * @param b
+     */
+    void validTeamWall(TeamWall teamWall, boolean b);
+
+    /**
+     * 获取团队视图体
+     * @param teamWall
+     * @return
+     */
+    TeamWallVO getTeamWallVO(TeamWall teamWall);
+
+    /**
+     * 获取分页团队视图体
+     * @param teamWallPage
+     * @return
+     */
+    Page<TeamWallVO> getTeamWallVOPage(Page<TeamWall> teamWallPage);
+
+    /**
+     * 根据请求体获取请求 Wrapper
+     * @param teamWallQueryRequest
+     * @return
+     */
+    QueryWrapper<TeamWall> getQueryWrapper(TeamWallQueryRequest teamWallQueryRequest);
+
+    /**
+     * 创建团队
+     * @param teamWall
+     * @return
+     */
+    boolean addTeamWall(TeamWall teamWall);
+
+
+    /**
+     * 解散团队
+     * @param teamWall
+     * @return
+     */
+    boolean deleteTeamWall(TeamWall teamWall);
+
 
 }
