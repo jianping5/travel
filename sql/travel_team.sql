@@ -1,3 +1,7 @@
+create database travel_team;
+
+use travel_team;
+
 create table team
 (
     id           bigint auto_increment comment '主键'

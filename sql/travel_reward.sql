@@ -1,3 +1,6 @@
+create database travel_reward;
+
+use travel_reward;
 create table consume_record
 (
     id            bigint auto_increment comment '主键'

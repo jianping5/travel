@@ -1,3 +1,7 @@
+create database travel_user;
+
+use travel_user;
+
 create table collection
 (
     id                  bigint auto_increment comment '主键'
