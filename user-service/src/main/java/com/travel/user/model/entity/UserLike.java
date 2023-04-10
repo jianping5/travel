@@ -34,7 +34,7 @@ public class UserLike implements Serializable {
     /**
      * 点赞对象 id
      */
-    private Integer likeObjId;
+    private Long likeObjId;
 
     /**
      * 点赞状态（0：点赞 1：取消点赞）

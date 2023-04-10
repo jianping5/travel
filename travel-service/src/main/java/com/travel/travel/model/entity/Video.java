@@ -15,6 +15,7 @@ import lombok.Data;
 @TableName(value ="video")
 @Data
 public class Video implements Serializable {
+
     /**
      * 主键
      */
@@ -89,7 +90,7 @@ public class Video implements Serializable {
     /**
      * 文章状态（0：正常 1：异常 2：删除）
      */
-    private Integer articleState;
+    private Integer videoState;
 
     /**
      * 创建时间
@@ -130,7 +131,7 @@ public class Video implements Serializable {
             && (this.getCommentCount() == null ? other.getCommentCount() == null : this.getCommentCount().equals(other.getCommentCount()))
             && (this.getFavoriteCount() == null ? other.getFavoriteCount() == null : this.getFavoriteCount().equals(other.getFavoriteCount()))
             && (this.getViewCount() == null ? other.getViewCount() == null : this.getViewCount().equals(other.getViewCount()))
-            && (this.getArticleState() == null ? other.getArticleState() == null : this.getArticleState().equals(other.getArticleState()))
+            && (this.getVideoState() == null ? other.getVideoState() == null : this.getVideoState().equals(other.getVideoState()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
     }
@@ -153,7 +154,7 @@ public class Video implements Serializable {
         result = prime * result + ((getCommentCount() == null) ? 0 : getCommentCount().hashCode());
         result = prime * result + ((getFavoriteCount() == null) ? 0 : getFavoriteCount().hashCode());
         result = prime * result + ((getViewCount() == null) ? 0 : getViewCount().hashCode());
-        result = prime * result + ((getArticleState() == null) ? 0 : getArticleState().hashCode());
+        result = prime * result + ((getVideoState() == null) ? 0 : getVideoState().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
         return result;
@@ -179,7 +180,7 @@ public class Video implements Serializable {
         sb.append(", commentCount=").append(commentCount);
         sb.append(", favoriteCount=").append(favoriteCount);
         sb.append(", viewCount=").append(viewCount);
-        sb.append(", articleState=").append(articleState);
+        sb.append(", articleState=").append(videoState);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", serialVersionUID=").append(serialVersionUID);

@@ -8,7 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="likeObjType" column="like_obj_type" jdbcType="INTEGER"/>
-            <result property="likeObjId" column="like_obj_id" jdbcType="INTEGER"/>
+            <result property="likeObjId" column="like_obj_id" jdbcType="BIGINT"/>
             <result property="likeState" column="like_state" jdbcType="TINYINT"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>

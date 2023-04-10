@@ -10,6 +10,7 @@ import com.travel.common.exception.BusinessException;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.domain.Mail;
+import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
 import com.travel.user.model.entity.UserInfo;
 import com.travel.user.service.UserInfoService;
@@ -18,6 +19,8 @@ import com.travel.user.mapper.UserMapper;
 import com.travel.user.utils.MailUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.redisson.api.RBucket;
 import org.redisson.api.RMapCache;
 import org.redisson.api.RedissonClient;
@@ -35,6 +38,7 @@ import java.util.UUID;
 * @createDate 2023-03-22 14:34:09
 */
 @Service
+@DubboService
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
 
@@ -156,8 +160,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
     }
 
+    @Override
+    public UserVO getUserVO(User user) {
+        if(user==null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user,userVO);
+        BeanUtil.copyProperties(user.getUserInfo(),userVO);
+        return userVO;
+    }
 
-    private User traverseUser(User user){
+
+    @Override
+    public User traverseUser(User user){
         if(user==null){
             return null;
         }
