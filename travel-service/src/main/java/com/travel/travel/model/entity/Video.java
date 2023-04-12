@@ -15,6 +15,7 @@ import lombok.Data;
 @TableName(value ="video")
 @Data
 public class Video implements Serializable {
+
     /**
      * 主键
      */
@@ -179,7 +180,7 @@ public class Video implements Serializable {
         sb.append(", commentCount=").append(commentCount);
         sb.append(", favoriteCount=").append(favoriteCount);
         sb.append(", viewCount=").append(viewCount);
-        sb.append(", videoState=").append(videoState);
+        sb.append(", articleState=").append(videoState);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", serialVersionUID=").append(serialVersionUID);

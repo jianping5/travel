@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.travel.user.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.travel.user.model.entity.User">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="officialId" column="official_id" jdbcType="BIGINT"/>
+            <result property="typeId" column="type_id" jdbcType="INTEGER"/>
+            <result property="teamId" column="team_id" jdbcType="VARCHAR"/>
+            <result property="token" column="token" jdbcType="INTEGER"/>
+            <result property="location" column="location" jdbcType="VARCHAR"/>
+            <result property="userRole" column="user_role" jdbcType="INTEGER"/>
+            <result property="userState" column="user_state" jdbcType="TINYINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,official_id,type_id,
+        team_id,token,location,
+        user_role,user_state,create_time,
+        update_time
+    </sql>
+</mapper>

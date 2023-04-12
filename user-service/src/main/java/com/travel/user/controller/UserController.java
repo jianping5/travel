@@ -4,26 +4,29 @@ package com.travel.user.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.travel.common.common.BaseResponse;
+import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
+import com.travel.common.exception.ThrowUtils;
 import com.travel.common.service.InnerTeamService;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
+import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
-import com.travel.user.model.request.CodeCheckRequest;
-import com.travel.user.model.request.CodeSendRequest;
-import com.travel.user.model.request.LoginRequest;
-import com.travel.user.model.request.RegisterRequest;
+import com.travel.user.model.request.*;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.FormatValidator;
 import com.travel.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.elasticsearch.search.aggregations.pipeline.Derivative;
 import org.redisson.api.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -56,7 +59,7 @@ public class UserController {
     private Gson gson;
 
     @PostMapping("/code/send")
-    public BaseResponse codeSend(@RequestBody CodeSendRequest codeSendRequest){
+    public BaseResponse<Object> codeSend(@RequestBody CodeSendRequest codeSendRequest){
 
         //参数判空
         if(codeSendRequest == null|| ObjectUtils.anyNull(codeSendRequest.getCredential(), codeSendRequest.getCodeType(), codeSendRequest.getCredentialType())){
@@ -144,7 +147,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public BaseResponse userRegister(@RequestBody RegisterRequest registerRequest){
+    public BaseResponse<User> userRegister(@RequestBody RegisterRequest registerRequest){
 
         //参数判空
         if(registerRequest==null||ObjectUtils.anyNull(registerRequest.getCredential(),
@@ -173,7 +176,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public BaseResponse userLogin(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public BaseResponse<User> userLogin(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
         //参数判空
         if(loginRequest == null||!CredentialType.isValid(loginRequest.getCredentialType())){
@@ -217,7 +220,7 @@ public class UserController {
     }
 
     @PostMapping("/login/test")
-    public BaseResponse userLoginTest(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public BaseResponse<User> userLoginTest(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
         // 获取user
         User user = userService.getById(1L);
@@ -239,9 +242,6 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
-
-
-
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         User user = UserHolder.getUser();
@@ -257,4 +257,77 @@ public class UserController {
         }
         return "logout";
     }
+
+
+//    /**
+//     * 更新用户
+//     * @return
+//     */
+//    @PostMapping("/update")
+//    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest derivativeUpdateRequest) {
+//        // 校验团队更新请求体
+//        if (derivativeUpdateRequest == null || derivativeUpdateRequest.getId() <= 0) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//
+//        // 将团队更新请求体的内容赋值给 团队
+//        Derivative Derivative = new Derivative();
+//        BeanUtils.copyProperties(derivativeUpdateRequest, Derivative);
+//
+//        // 参数校验
+//        derivativeService.validDerivative(Derivative, false);
+//        long id = derivativeUpdateRequest.getId();
+//
+//        // 判断是否存在
+//        Derivative oldPost = derivativeService.getById(id);
+//        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+//
+//        // 更新团队
+//        derivativeService.updateDerivative(Derivative);
+//
+//        return ResultUtils.success(true);
+//    }
+
+
+    /**
+     * 根据 id 获取用户视图图详情
+     * @param id
+     * @return
+     */
+    @GetMapping("/get/vo")
+    public BaseResponse<UserVO> getUserVOById(long id) {
+        // 校验 id
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        User user = userService.getById(id);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(userService.getUserVO(user));
+    }
+//
+//    /**
+//     * 分页获取列表（封装类）
+//     *
+//     * @param derivativeQueryRequest
+//     * @return
+//     */
+//    @PostMapping("/list/page/vo")
+//    public BaseResponse<Page<DerivativeVO>> listUserVOByPage(@RequestBody UserQueryRequest derivativeQueryRequest) {
+//        if (derivativeQueryRequest == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//
+//        long current = derivativeQueryRequest.getCurrent();
+//        long size = derivativeQueryRequest.getPageSize();
+//        // 限制爬虫
+//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+//        Page<Derivative> derivativePage = derivativeService.page(new Page<>(current, size),
+//                derivativeService.getQueryWrapper(derivativeQueryRequest));
+//
+//        return ResultUtils.success(derivativeService.getDerivativeVOPage(derivativePage));
+//    }
+
 }

@@ -1,7 +1,11 @@
 package com.travel.user.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.user.model.dto.MessageVO;
 import com.travel.user.model.entity.Message;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.travel.user.model.request.MessageQueryRequest;
 
 /**
 * @author jianping5
@@ -9,5 +13,18 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2023-03-22 14:34:09
 */
 public interface MessageService extends IService<Message> {
+
+    
+    MessageVO getMessageVO(Message message);
+
+    Page<MessageVO> getMessageVOPage(Page<Message> messagePage);
+    
+    QueryWrapper<Message> getQueryWrapper(MessageQueryRequest messageQueryRequest);
+
+    boolean deleteMessage(Message message);
+    
+    boolean updateMessage(Message message);
+
+    void validMessage(Message message, boolean b);
 
 }

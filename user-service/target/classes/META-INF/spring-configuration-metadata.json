@@ -1,0 +1,37 @@
+{
+  "groups": [
+    {
+      "name": "spring.mail",
+      "type": "com.travel.user.model.domain.EmailSender",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    }
+  ],
+  "properties": [
+    {
+      "name": "spring.mail.host",
+      "type": "java.lang.String",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    },
+    {
+      "name": "spring.mail.java-mail-sender",
+      "type": "org.springframework.mail.javamail.JavaMailSenderImpl",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    },
+    {
+      "name": "spring.mail.password",
+      "type": "java.lang.String",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    },
+    {
+      "name": "spring.mail.port",
+      "type": "java.lang.Integer",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    },
+    {
+      "name": "spring.mail.username",
+      "type": "java.lang.String",
+      "sourceType": "com.travel.user.model.domain.EmailSender"
+    }
+  ],
+  "hints": []
+}
