@@ -40,7 +40,10 @@ public class Message implements Serializable {
      * 消息关联对象 id
      */
     private Long messageObjId;
-
+    /**
+     * 消息关联对象 id
+     */
+    private Long messageUserId;
     /**
      * 消息状态（0：未读 1：已读）
      */

@@ -2,6 +2,7 @@ package com.travel.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.travel.common.common.BaseResponse;
+import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
 import com.travel.user.model.entity.UserInfo;
 
@@ -36,6 +37,9 @@ public interface UserService extends IService<User> {
     */
    BaseResponse<User> userRegister(String credential,Integer credentialType,String password);
 
+   UserVO getUserVO(User user);
+
+   User traverseUser(User user);
 
 
 }

@@ -1,8 +1,29 @@
 package com.travel.travel.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.common.BaseResponse;
+import com.travel.common.common.DeleteRequest;
+import com.travel.common.common.ErrorCode;
+import com.travel.common.common.ResultUtils;
+import com.travel.common.exception.BusinessException;
+import com.travel.common.exception.ThrowUtils;
+import com.travel.common.model.entity.User;
+import com.travel.common.utils.UserHolder;
+import com.travel.travel.model.vo.ArticleVO;
+import com.travel.travel.model.vo.VideoVO;
+import com.travel.travel.model.entity.Article;
+import com.travel.travel.model.entity.ArticleDetail;
+import com.travel.travel.model.entity.Video;
+import com.travel.travel.model.request.*;
+import com.travel.travel.service.ArticleDetailService;
+import com.travel.travel.service.ArticleService;
+import com.travel.travel.service.VideoService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * @author jianping5
@@ -11,9 +32,232 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/travel")
 public class TravelController {
+    @Resource
+    private ArticleService articleService;
+    @Resource
+    private VideoService videoService;
+    @Resource
+    private ArticleDetailService articleDetailService;
 
-    @GetMapping("/")
-    public String get() {
-        return "567";
+    @PostMapping("/article/add")
+    public BaseResponse<Long> addArticle(@RequestBody ArticleAddRequest articleAddRequest) {
+        // 校验请求体
+        if (articleAddRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 将 请求体的内容赋值到 Article 中
+        Article article = new Article();
+        BeanUtils.copyProperties(articleAddRequest, article);
+
+        // 校验 Article 信息是否合法
+        articleService.validArticle(article, true);
+
+        // 添加周边
+        Article newArticle = articleService.addArticle(article);
+
+        // 获取周边 id
+        long newArticleId = newArticle.getId();
+
+        return ResultUtils.success(newArticleId);
+    }
+
+    @PostMapping("/article/delete")
+    public BaseResponse<Boolean> deleteArticle(@RequestBody DeleteRequest deleteRequest) {
+        // 校验删除请求体
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 获取删除的 Article id
+        long id = deleteRequest.getId();
+
+        // 判断是否存在
+        Article oldPost = articleService.getById(id);
+        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 获取当前登录用户
+        User loginUser = UserHolder.getUser();
+
+        // 仅本人或管理员可删除
+        if (!oldPost.getUserId().equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        boolean result = articleService.deleteArticle(oldPost);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
+        return ResultUtils.success(true);
+    }
+
+    @PostMapping("/article/update")
+    public BaseResponse<Boolean> updateArticle(@RequestBody VideoUpdateRequest articleUpdateRequest) {
+        // 校验团队更新请求体
+        if (articleUpdateRequest == null || articleUpdateRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 将团队更新请求体的内容赋值给 团队
+        Article Article = new Article();
+        BeanUtils.copyProperties(articleUpdateRequest, Article);
+
+        // 参数校验
+        articleService.validArticle(Article, false);
+        long id = articleUpdateRequest.getId();
+
+        // 判断是否存在
+        Article oldPost = articleService.getById(id);
+        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 更新团队
+        articleService.updateArticle(Article);
+
+        return ResultUtils.success(true);
+    }
+
+    @GetMapping("/article/get/vo")
+    public BaseResponse<ArticleVO> getArticleVOById(long id) {
+        // 校验 id
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        Article article = articleService.getById(id);
+        if(article!=null){
+            article.setViewCount(article.getViewCount()+1);
+            articleService.updateById(article);
+        }
+        ArticleDetail articleDetail = articleDetailService.getOne(new QueryWrapper<ArticleDetail>().eq("article_id", id));
+        if (article == null||articleDetail==null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // todo: 插入用户行为记录
+        return ResultUtils.success(articleService.getArticleVO(article,articleDetail));
+    }
+
+    @PostMapping("/article/list/page/vo")
+    public BaseResponse<Page<ArticleVO>> listArticleVOByPage(@RequestBody ArticleQueryRequest articleQueryRequest) {
+        if (articleQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        long size = articleQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Page<Article> articlePage = articleService.queryArticle(articleQueryRequest);
+
+        return ResultUtils.success(articleService.getArticleVOPage(articlePage));
+    }
+
+
+
+
+    @PostMapping("/video/add")
+    public BaseResponse<Long> addVideo(@RequestBody VideoAddRequest videoAddRequest) {
+        // 校验请求体
+        if (videoAddRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 将 请求体的内容赋值到 Video 中
+        Video video = new Video();
+        BeanUtils.copyProperties(videoAddRequest, video);
+
+        // 校验 Video 信息是否合法
+        videoService.validVideo(video, true);
+
+        // 添加周边
+        Video newVideo = videoService.addVideo(video);
+
+        // 获取周边 id
+        long newVideoId = newVideo.getId();
+
+        return ResultUtils.success(newVideoId);
+    }
+
+
+    @PostMapping("/video/delete")
+    public BaseResponse<Boolean> deleteVideo(@RequestBody DeleteRequest deleteRequest) {
+        // 校验删除请求体
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 获取删除的 Video id
+        long id = deleteRequest.getId();
+
+        // 判断是否存在
+        Video oldPost = videoService.getById(id);
+        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 获取当前登录用户
+        User loginUser = UserHolder.getUser();
+
+        // 仅本人或管理员可删除
+        if (!oldPost.getUserId().equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        boolean result = videoService.deleteVideo(oldPost);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
+        return ResultUtils.success(true);
+    }
+
+
+    @PostMapping("/video/update")
+    public BaseResponse<Boolean> updateVideo(@RequestBody VideoUpdateRequest videoUpdateRequest) {
+        // 校验团队更新请求体
+        if (videoUpdateRequest == null || videoUpdateRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 将团队更新请求体的内容赋值给 团队
+        Video Video = new Video();
+        BeanUtils.copyProperties(videoUpdateRequest, Video);
+
+        // 参数校验
+        videoService.validVideo(Video, false);
+        long id = videoUpdateRequest.getId();
+
+        // 判断是否存在
+        Video oldPost = videoService.getById(id);
+        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 更新团队
+        videoService.updateVideo(Video);
+
+        return ResultUtils.success(true);
+    }
+
+
+
+    @GetMapping("/video/get/vo")
+    public BaseResponse<VideoVO> getVideoVOById(long id) {
+        // 校验 id
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        Video video = videoService.getById(id);
+        if(video!=null){
+            video.setViewCount(video.getViewCount()+1);
+            videoService.updateById(video);
+        }
+        if (video == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // todo: 插入用户行为记录
+        return ResultUtils.success(videoService.getVideoVO(video));
+    }
+
+
+    @PostMapping("/video/list/page/vo")
+    public BaseResponse<Page<VideoVO>> listVideoVOByPage(@RequestBody VideoQueryRequest videoQueryRequest) {
+        if (videoQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        long size = videoQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        Page<Video> videoPage = videoService.queryVideo(videoQueryRequest);
+
+        //todo: 添加历史记录
+        return ResultUtils.success(videoService.getVideoVOPage(videoPage));
     }
 }

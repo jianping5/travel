@@ -15,6 +15,7 @@ import lombok.Data;
 @TableName(value ="article")
 @Data
 public class Article implements Serializable {
+
     /**
      * 主键
      */
@@ -55,6 +56,12 @@ public class Article implements Serializable {
      * 文章首句话
      */
     private String intro;
+
+    /**
+     * 文章详情
+     */
+    @TableField(exist = false)
+    private String detail;
 
     /**
      * 地理位置
