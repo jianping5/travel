@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 资讯通知表
+ * @author jianping5
  * @TableName notification
  */
 @TableName(value ="notification")
@@ -32,6 +34,11 @@ public class Notification implements Serializable {
     private Long officialId;
 
     /**
+     * 官方类型 id
+     */
+    private Integer typeId;
+
+    /**
      * 标题
      */
     private String title;
@@ -42,24 +49,14 @@ public class Notification implements Serializable {
     private String coverUrl;
 
     /**
-     * 价格
-     */
-    private Integer price;
-
-    /**
-     * 官方资源首句话
+     * 资讯通知首句话
      */
     private String intro;
 
     /**
-     * 类型 id
+     * 资讯通知详情
      */
-    private Integer typeId;
-
-    /**
-     * 点赞量
-     */
-    private Integer likeCount;
+    private String detail;
 
     /**
      * 浏览量
@@ -67,9 +64,9 @@ public class Notification implements Serializable {
     private Integer viewCount;
 
     /**
-     * 资源状态（0：正常 1：异常 2：下架）
+     * 资源状态（0：正常 1：异常 2：删除）
      */
-    private Integer resourceState;
+    private Integer notificationState;
 
     /**
      * 创建时间
@@ -99,14 +96,13 @@ public class Notification implements Serializable {
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
             && (this.getOfficialId() == null ? other.getOfficialId() == null : this.getOfficialId().equals(other.getOfficialId()))
+            && (this.getTypeId() == null ? other.getTypeId() == null : this.getTypeId().equals(other.getTypeId()))
             && (this.getTitle() == null ? other.getTitle() == null : this.getTitle().equals(other.getTitle()))
             && (this.getCoverUrl() == null ? other.getCoverUrl() == null : this.getCoverUrl().equals(other.getCoverUrl()))
-            && (this.getPrice() == null ? other.getPrice() == null : this.getPrice().equals(other.getPrice()))
             && (this.getIntro() == null ? other.getIntro() == null : this.getIntro().equals(other.getIntro()))
-            && (this.getTypeId() == null ? other.getTypeId() == null : this.getTypeId().equals(other.getTypeId()))
-            && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
+            && (this.getDetail() == null ? other.getDetail() == null : this.getDetail().equals(other.getDetail()))
             && (this.getViewCount() == null ? other.getViewCount() == null : this.getViewCount().equals(other.getViewCount()))
-            && (this.getResourceState() == null ? other.getResourceState() == null : this.getResourceState().equals(other.getResourceState()))
+            && (this.getNotificationState() == null ? other.getNotificationState() == null : this.getNotificationState().equals(other.getNotificationState()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
     }
@@ -118,14 +114,13 @@ public class Notification implements Serializable {
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
         result = prime * result + ((getOfficialId() == null) ? 0 : getOfficialId().hashCode());
+        result = prime * result + ((getTypeId() == null) ? 0 : getTypeId().hashCode());
         result = prime * result + ((getTitle() == null) ? 0 : getTitle().hashCode());
         result = prime * result + ((getCoverUrl() == null) ? 0 : getCoverUrl().hashCode());
-        result = prime * result + ((getPrice() == null) ? 0 : getPrice().hashCode());
         result = prime * result + ((getIntro() == null) ? 0 : getIntro().hashCode());
-        result = prime * result + ((getTypeId() == null) ? 0 : getTypeId().hashCode());
-        result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
+        result = prime * result + ((getDetail() == null) ? 0 : getDetail().hashCode());
         result = prime * result + ((getViewCount() == null) ? 0 : getViewCount().hashCode());
-        result = prime * result + ((getResourceState() == null) ? 0 : getResourceState().hashCode());
+        result = prime * result + ((getNotificationState() == null) ? 0 : getNotificationState().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
         return result;
@@ -140,14 +135,13 @@ public class Notification implements Serializable {
         sb.append(", id=").append(id);
         sb.append(", userId=").append(userId);
         sb.append(", officialId=").append(officialId);
+        sb.append(", typeId=").append(typeId);
         sb.append(", title=").append(title);
         sb.append(", coverUrl=").append(coverUrl);
-        sb.append(", price=").append(price);
         sb.append(", intro=").append(intro);
-        sb.append(", typeId=").append(typeId);
-        sb.append(", likeCount=").append(likeCount);
+        sb.append(", detail=").append(detail);
         sb.append(", viewCount=").append(viewCount);
-        sb.append(", resourceState=").append(resourceState);
+        sb.append(", notificationState=").append(notificationState);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", serialVersionUID=").append(serialVersionUID);

@@ -8,23 +8,21 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="officialId" column="official_id" jdbcType="BIGINT"/>
+            <result property="typeId" column="type_id" jdbcType="INTEGER"/>
             <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="coverUrl" column="cover_url" jdbcType="VARCHAR"/>
-            <result property="price" column="price" jdbcType="INTEGER"/>
             <result property="intro" column="intro" jdbcType="VARCHAR"/>
-            <result property="typeId" column="type_id" jdbcType="INTEGER"/>
-            <result property="likeCount" column="like_count" jdbcType="INTEGER"/>
+            <result property="detail" column="detail" jdbcType="VARCHAR"/>
             <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
-            <result property="resourceState" column="resource_state" jdbcType="INTEGER"/>
+            <result property="notificationState" column="notification_state" jdbcType="INTEGER"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,user_id,official_id,
-        title,cover_url,price,
-        intro,type_id,like_count,
-        view_count,resource_state,create_time,
-        update_time
+        type_id,title,cover_url,
+        intro,detail,view_count,
+        notification_state,create_time,update_time
     </sql>
 </mapper>

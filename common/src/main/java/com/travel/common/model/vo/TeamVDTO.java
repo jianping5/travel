@@ -1,6 +1,6 @@
 package com.travel.common.model.vo;
 
-import com.travel.common.model.dto.TeamDTO;
+import com.travel.common.model.dto.team.TeamDTO;
 import com.travel.common.model.dto.UserDTO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

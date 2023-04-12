@@ -10,4 +10,17 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface ResourceDetailService extends IService<ResourceDetail> {
 
+    /**
+     * 添加官方详情
+     * @param resourceDetail
+     * @return
+     */
+    boolean addResourceDetail(ResourceDetail resourceDetail);
+
+    /**
+     * 更新官方详情
+     * @param resourceDetail
+     * @return
+     */
+    boolean updateResourceDetail(ResourceDetail resourceDetail);
 }

@@ -29,6 +29,7 @@ import com.travel.team.model.entity.TeamWall;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamApplyService;
 import com.travel.team.service.TeamService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 * @description 针对表【team(团队表)】的数据库操作Service实现
 * @createDate 2023-03-22 14:40:38
 */
+@Slf4j
 @Service
 public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     implements TeamService {
@@ -64,6 +66,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     @Resource
     private TeamNewsMapper teamNewsMapper;
 
+    @Resource
     private TeamWallMapper teamWallMapper;
 
     @Resource
@@ -129,55 +132,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         if (CollectionUtils.isEmpty(teamList)) {
             return teamVOPage;
         }
-        // 1. 关联查询用户信息
-        Set<Long> userIdSet = teamList.stream().map(Team::getUserId).collect(Collectors.toSet());
-        // 这样做的好处是将 用户 id 和其对应的信息直接对应起来，方便后续获取（而不用遍历获取）
 
-/*        // 2. 已登录，获取用户点赞、收藏状态
-        Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
-        Map<Long, Boolean> postIdHasFavourMap = new HashMap<>();
-        User loginUser = userService.getLoginUserPermitNull(request);
-        if (loginUser != null) {
-            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
-            loginUser = userService.getLoginUser(request);
-            // 获取点赞
-            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
-            postThumbQueryWrapper.in("postId", postIdSet);
-            postThumbQueryWrapper.eq("userId", loginUser.getId());
-            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
-            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
-            // 获取收藏
-            QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
-            postFavourQueryWrapper.in("postId", postIdSet);
-            postFavourQueryWrapper.eq("userId", loginUser.getId());
-            List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
-            postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
-        }*/
+        // 根据团队列表获取团队视图体列表
+        List<TeamVO> teamVOList = getTeamVOList(teamList);
 
-        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
-        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
+        teamVOPage.setRecords(teamVOList);
 
-        // 填充信息
-        List<TeamVO> postVOList = teamList.stream().map(post -> {
-            TeamVO teamVO = TeamVO.objToVo(post);
-            Long userId = post.getUserId();
-            UserDTO userDTO = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                userDTO = userIdUserListMap.get(userId).get(0);
-            }
-            teamVO.setUser(userDTO);
-            return teamVO;
-        }).collect(Collectors.toList());
-        teamVOPage.setRecords(postVOList);
         return teamVOPage;
     }
 
-    /**
-     * 获取查询包装类
-     *
-     * @param teamQueryRequest
-     * @return
-     */
     @Override
     public QueryWrapper<Team> getQueryWrapper(TeamQueryRequest teamQueryRequest) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
@@ -425,7 +388,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // 若无，则从数据库中读取
         QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
         teamQueryWrapper.last("order by 5*travel_count+3*news_count+2*team_size desc limit " + size);
-        teamVOList = this.list(teamQueryWrapper).stream().map(team -> getTeamVO(team)).collect(Collectors.toList());
+
+        // 根据团队列表获取团队视图体列表
+        List<Team> teamList = this.list(teamQueryWrapper);
+        teamVOList = getTeamVOList(teamList);
 
         // todo: 并将写缓存的任务添加到消息队列
         // 定义交换机名称
@@ -438,6 +404,58 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         rabbitTemplate.convertAndSend(exchangeName, "cache.team", message);
 
         return teamVOList;
+    }
+
+    @Override
+    public List<TeamVO> getTeamVOList(List<Team> teamList) {
+        // 1. 关联查询用户信息
+        Set<Long> userIdSet = teamList.stream().map(Team::getUserId).collect(Collectors.toSet());
+        // 这样做的好处是将 用户 id 和其对应的信息直接对应起来，方便后续获取（而不用遍历获取）
+
+/*        // 2. 已登录，获取用户点赞、收藏状态
+        Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
+        Map<Long, Boolean> postIdHasFavourMap = new HashMap<>();
+        User loginUser = userService.getLoginUserPermitNull(request);
+        if (loginUser != null) {
+            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
+            loginUser = userService.getLoginUser(request);
+            // 获取点赞
+            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
+            postThumbQueryWrapper.in("postId", postIdSet);
+            postThumbQueryWrapper.eq("userId", loginUser.getId());
+            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
+            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
+            // 获取收藏
+            QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
+            postFavourQueryWrapper.in("postId", postIdSet);
+            postFavourQueryWrapper.eq("userId", loginUser.getId());
+            List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
+            postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
+        }*/
+
+        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
+
+        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
+
+        // 填充信息
+        List<TeamVO> teamVOList = teamList.stream().map(team -> {
+            TeamVO teamVO = TeamVO.objToVo(team);
+            Long userId = team.getUserId();
+            UserDTO userDTO = null;
+            if (userIdUserListMap.containsKey(userId)) {
+                userDTO = userIdUserListMap.get(userId).get(0);
+            }
+            teamVO.setUser(userDTO);
+            return teamVO;
+        }).collect(Collectors.toList());
+
+        return teamVOList;
+    }
+
+    @Override
+    public List<UserDTO> listTeamMember(Long teamId) {
+
+        return innerUserService.listUserByTeamId(teamId);
     }
 }
 

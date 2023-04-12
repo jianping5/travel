@@ -4,9 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 用户行为表
@@ -24,7 +25,7 @@ public class Behavior implements Serializable {
     /**
      * 用户 id
      */
-    private String userId;
+    private Long userId;
 
     /**
      * 行为对象类型
@@ -39,7 +40,7 @@ public class Behavior implements Serializable {
     /**
      * 行为类型
      */
-    private Long behaviorType;
+    private Integer behaviorType;
 
     /**
      * 访问次数

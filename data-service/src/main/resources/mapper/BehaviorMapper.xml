@@ -6,10 +6,10 @@
 
     <resultMap id="BaseResultMap" type="com.travel.data.model.entity.Behavior">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="behaviorObjType" column="behavior_obj_type" jdbcType="INTEGER"/>
             <result property="behaviorObjId" column="behavior_obj_id" jdbcType="BIGINT"/>
-            <result property="behaviorType" column="behavior_type" jdbcType="BIGINT"/>
+            <result property="behaviorType" column="behavior_type" jdbcType="INTEGER"/>
             <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>

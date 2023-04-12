@@ -19,7 +19,7 @@
             <result property="commentCount" column="comment_count" jdbcType="INTEGER"/>
             <result property="favoriteCount" column="favorite_count" jdbcType="INTEGER"/>
             <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
-            <result property="articleState" column="article_state" jdbcType="INTEGER"/>
+            <result property="videoState" column="video_state" jdbcType="INTEGER"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -29,7 +29,7 @@
         cover_url,team_id,intro,
         video_url,permission,tag,
         location,like_count,comment_count,
-        favorite_count,view_count,article_state,
+        favorite_count,view_count,video_state,
         create_time,update_time
     </sql>
 </mapper>

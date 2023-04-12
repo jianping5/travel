@@ -28,14 +28,13 @@ create table notification
         primary key,
     user_id        bigint                                 not null comment '所属用户 id',
     official_id    bigint                                 not null comment '所属官方 id',
+    type_id        bigint                                 not null comment '官方类型 id',
     title          varchar(100)                           not null comment '标题',
     cover_url      varchar(512)                           not null comment '封面 URL',
-    price          int                                    null comment '价格',
-    intro          varchar(255) default ''                not null comment '官方资源首句话',
-    type_id        int                                    not null comment '类型 id',
-    like_count     int          default 0                 not null comment '点赞量',
+    intro          varchar(255) default ''                not null comment '资讯通知首句话',
+    detail         text                                   not null comment '资讯通知详情',
     view_count     int          default 0                 not null comment '浏览量',
-    resource_state int          default 0                 not null comment '资源状态（0：正常 1：异常 2：下架）',
+    notification_state int      default 0                 not null comment '资源状态（0：正常 1：异常 2：删除）',
     create_time    datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time    datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
 )

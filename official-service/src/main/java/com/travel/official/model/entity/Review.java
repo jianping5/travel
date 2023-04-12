@@ -48,6 +48,16 @@ public class Review implements Serializable {
     private String location;
 
     /**
+     * 点赞量
+     */
+    private Integer likeCount;
+
+    /**
+     * 回复量
+     */
+    private Integer replyCount;
+
+    /**
      * 是否删除
      */
     private Integer isDeleted;
@@ -83,6 +93,8 @@ public class Review implements Serializable {
             && (this.getReviewObjId() == null ? other.getReviewObjId() == null : this.getReviewObjId().equals(other.getReviewObjId()))
             && (this.getContent() == null ? other.getContent() == null : this.getContent().equals(other.getContent()))
             && (this.getLocation() == null ? other.getLocation() == null : this.getLocation().equals(other.getLocation()))
+            && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
+            && (this.getReplyCount() == null ? other.getReplyCount() == null : this.getReplyCount().equals(other.getReplyCount()))
             && (this.getIsDeleted() == null ? other.getIsDeleted() == null : this.getIsDeleted().equals(other.getIsDeleted()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
@@ -98,6 +110,8 @@ public class Review implements Serializable {
         result = prime * result + ((getReviewObjId() == null) ? 0 : getReviewObjId().hashCode());
         result = prime * result + ((getContent() == null) ? 0 : getContent().hashCode());
         result = prime * result + ((getLocation() == null) ? 0 : getLocation().hashCode());
+        result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
+        result = prime * result + ((getReplyCount() == null) ? 0 : getReplyCount().hashCode());
         result = prime * result + ((getIsDeleted() == null) ? 0 : getIsDeleted().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
@@ -116,6 +130,8 @@ public class Review implements Serializable {
         sb.append(", reviewObjId=").append(reviewObjId);
         sb.append(", content=").append(content);
         sb.append(", location=").append(location);
+        sb.append(", likeCount=").append(likeCount);
+        sb.append(", replyCount=").append(replyCount);
         sb.append(", isDeleted=").append(isDeleted);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);

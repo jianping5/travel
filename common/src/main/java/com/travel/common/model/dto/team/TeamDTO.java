@@ -1,4 +1,4 @@
-package com.travel.common.model.dto;
+package com.travel.common.model.dto.team;
 
 import lombok.Data;
 

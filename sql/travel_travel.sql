@@ -71,7 +71,7 @@ create table video
     comment_count  int          default 0                 not null comment '评论量',
     favorite_count int          default 0                 not null comment '收藏量',
     view_count     int          default 0                 not null comment '浏览量',
-    article_state  int          default 0                 not null comment '文章状态（0：正常 1：异常 2：删除）',
+    video_state    int          default 0                 not null comment '文章状态（0：正常 1：异常 2：删除）',
     create_time    datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time    datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
 )

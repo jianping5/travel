@@ -26,11 +26,11 @@ public class MessageListener {
 
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(name = "travel.cache"),
+            value = @Queue(name = "travel.team"),
             exchange = @Exchange(name = "travel.topic", type = ExchangeTypes.TOPIC),
             key = "cache.team"
     ))
-    public void listenTopicQueue2(String msg){
+    public void listenTeamQueue(String msg){
         // todo: 当业务线程发现缓存失效后，由当前线程更新缓存
 
         updateCache.execute();

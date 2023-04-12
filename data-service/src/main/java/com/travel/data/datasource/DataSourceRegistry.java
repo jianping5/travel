@@ -11,12 +11,19 @@ import java.util.Map;
 
 /**
  * 数据源注册器
+ * @author jianping5
  */
 @Component
 public class DataSourceRegistry {
 
     @Resource
     private TeamDataSource teamDataSource;
+
+    @Resource
+    private OfficialDataSource officialDataSource;
+
+    @Resource
+    private DerivativeDataSource derivativeDataSource;
 
     private Map<String, DataSource<T>> typeDataSourceMap;
 
@@ -25,6 +32,8 @@ public class DataSourceRegistry {
         System.out.println(1);
         typeDataSourceMap = new HashMap(20) {{
             put(TypeConstant.TEAM.getTypeName(), teamDataSource);
+            put(TypeConstant.OFFICIAL.getTypeName(), officialDataSource);
+            put(TypeConstant.DERIVATIVE.getTypeName(), derivativeDataSource);
         }};
     }
 

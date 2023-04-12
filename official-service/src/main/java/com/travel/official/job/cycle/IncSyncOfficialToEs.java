@@ -1,9 +1,9 @@
-package com.travel.team.job.cycle;
+package com.travel.official.job.cycle;
 
-import com.travel.team.esdao.TeamEsDao;
-import com.travel.team.mapper.TeamMapper;
-import com.travel.team.model.dto.team.TeamEsDTO;
-import com.travel.team.model.entity.Team;
+import com.travel.official.esdao.OfficialEsDao;
+import com.travel.official.mapper.OfficialMapper;
+import com.travel.official.model.dto.official.OfficialEsDTO;
+import com.travel.official.model.entity.Official;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 // todo 取消注释开启任务
 @Component
 @Slf4j
-public class IncSyncPostToEs {
+public class IncSyncOfficialToEs {
 
     @Resource
-    private TeamMapper teamMapper;
+    private OfficialMapper officialMapper;
 
     @Resource
-    private TeamEsDao teamEsDao;
+    private OfficialEsDao officialEsDao;
 
     /**
      * 每分钟执行一次
@@ -37,25 +37,26 @@ public class IncSyncPostToEs {
     public void run() {
         // 查询近 5 分钟内的数据
         Date fiveMinutesAgoDate = new Date(System.currentTimeMillis() - 5 * 60 * 1000L);
-        List<Team> teamList = teamMapper.listTeamWithDelete(fiveMinutesAgoDate);
-        if (CollectionUtils.isEmpty(teamList)) {
-            log.info("no inc team");
+        List<Official> officialList = officialMapper.listOfficialWithDelete(fiveMinutesAgoDate);
+        if (CollectionUtils.isEmpty(officialList)) {
+            log.info("no inc official");
             return;
         }
-        // 将 team 转为 TeamEsDTO
-        List<TeamEsDTO> teamEsDTOList = teamList.stream()
-                .map(TeamEsDTO::objToDto)
+        // 将 official 转为 OfficialEsDTO
+        List<OfficialEsDTO> officialEsDTOList = officialList.stream()
+                .map(OfficialEsDTO::objToDto)
                 .collect(Collectors.toList());
+
         final int pageSize = 500;
-        int total = teamEsDTOList.size();
-        log.info("IncSyncTeamToEs start, total {}", total);
+        int total = officialEsDTOList.size();
+        log.info("IncSyncOfficialToEs start, total {}", total);
 
         // 分块添加到 ES 中
         for (int i = 0; i < total; i += pageSize) {
             int end = Math.min(i + pageSize, total);
             log.info("sync from {} to {}", i, end);
-            teamEsDao.saveAll(teamEsDTOList.subList(i, end));
+            officialEsDao.saveAll(officialEsDTOList.subList(i, end));
         }
-        log.info("IncSyncTeamToEs end, total {}", total);
+        log.info("IncSyncOfficialToEs end, total {}", total);
     }
 }

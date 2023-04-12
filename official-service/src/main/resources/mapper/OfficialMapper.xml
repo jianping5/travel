@@ -35,4 +35,9 @@
         favorite_count,view_count,create_time,
         update_time
     </sql>
+    <select id="listOfficialWithDelete" resultType="com.travel.official.model.entity.Official">
+        select <include refid="Base_Column_List"/>
+        from official
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>

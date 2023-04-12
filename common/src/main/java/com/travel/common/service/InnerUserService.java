@@ -1,6 +1,5 @@
 package com.travel.common.service;
 
-import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
 import com.travel.common.model.dto.UserDTO;
 
 import java.util.List;
@@ -57,4 +56,22 @@ public interface InnerUserService {
      * @return
      */
     String getTeamIdStr(Long userId);
+
+    /**
+     * 更新点赞记录表
+     * @param loginUserId
+     * @param type
+     * @param id
+     * @param status
+     * @return
+     */
+    boolean updateOfficialLike(long loginUserId, int type, long id, int status);
+
+    /**
+     * 获取团队成员
+     * @param teamId
+     * @return
+     */
+    List<UserDTO> listUserByTeamId(Long teamId);
+
 }

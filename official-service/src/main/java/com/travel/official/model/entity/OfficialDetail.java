@@ -10,6 +10,7 @@ import lombok.Data;
 
 /**
  * 官方详情表
+ * @author jianping5
  * @TableName official_detail
  */
 @TableName(value ="official_detail")

@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 官方表
+ * @author jianping5
  * @TableName official
  */
 @TableName(value ="official")
@@ -110,6 +112,18 @@ public class Official implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 官方详情 id
+     */
+    @TableField(exist = false)
+    private Long officialDetailId;
+
+    /**
+     * 官方详情
+     */
+    @TableField(exist = false)
+    private String detail;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

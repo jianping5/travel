@@ -40,12 +40,12 @@ public class TopicConfig {
      * @return
      */
     @Bean
-    public Binding bindingQueue1(Queue cacheQueue, TopicExchange topicExchange) {
+    public Binding bindingCacheQueue(Queue cacheQueue, TopicExchange topicExchange) {
         return BindingBuilder.bind(cacheQueue).to(topicExchange).with("cache.#");
     }
 
     /**
-     * 声明第二个队列
+     * 声明第二个队列（团队缓存）
      * @return
      */
     @Bean
@@ -60,12 +60,12 @@ public class TopicConfig {
      * @return
      */
     @Bean
-    public Binding bindingQueue2(Queue teamQueue, TopicExchange topicExchange) {
-        return BindingBuilder.bind(teamQueue).to(topicExchange).with("team.#");
+    public Binding bindingTeamQueue(Queue teamQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(teamQueue).to(topicExchange).with("cache.#");
     }
 
     /**
-     * 声明第三个队列
+     * 声明第三个队列（周边缓存）
      * @return
      */
     @Bean
@@ -80,8 +80,67 @@ public class TopicConfig {
      * @return
      */
     @Bean
-    public Binding bindingQueue3(Queue derivativeQueue, TopicExchange topicExchange) {
+    public Binding bindingDerivativeQueue(Queue derivativeQueue, TopicExchange topicExchange) {
         return BindingBuilder.bind(derivativeQueue).to(topicExchange).with("cache.#");
+    }
+
+    /**
+     * 声明第四个队列（官方缓存）
+     * @return
+     */
+    @Bean
+    public Queue officialQueue() {
+        return new Queue("travel.official");
+    }
+
+    /**
+     * 绑定队列 4 到 topic 交换机
+     * @param officialQueue
+     * @param topicExchange
+     * @return
+     */
+    @Bean
+    public Binding bindingOfficialQueue(Queue officialQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(officialQueue).to(topicExchange).with("cache.#");
+    }
+
+    /**
+     * 声明第四个队列（官方点赞）
+     * @return
+     */
+    @Bean
+    public Queue officialLikeQueue() {
+        return new Queue("travel.official.like");
+    }
+
+    /**
+     * 绑定队列 officialLikeQueue 到 topic 交换机
+     * @param officialQueue
+     * @param topicExchange
+     * @return
+     */
+    @Bean
+    public Binding bindingOfficialLikeQueue(Queue officialQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(officialQueue).to(topicExchange).with("cache.#");
+    }
+
+    /**
+     * 声明用户行为记录队列
+     */
+    @Bean
+    public Queue behaviorQueue() {
+        return new Queue("travel.behavior");
+    }
+
+    /**
+     * 绑定队列 behaviorQueue 到 topic 交换机
+     * @param officialQueue
+     * @param topicExchange
+     * @return
+     */
+    @Bean
+    public Binding bindingBehaviorQueue(Queue officialQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(officialQueue).to(topicExchange).with("behavior.#");
     }
 
 }

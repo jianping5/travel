@@ -1,12 +1,9 @@
 package com.travel.team.service.inner;
 
-import cn.hutool.core.lang.Pair;
-import com.alibaba.nacos.shaded.org.checkerframework.checker.units.qual.A;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.constant.CommonConstant;
-import com.travel.common.model.dto.TeamQueryRequest;
-import com.travel.common.model.dto.TeamDTO;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.team.TeamQueryRequest;
 import com.travel.common.model.vo.TeamVDTO;
 import com.travel.common.service.InnerTeamService;
 import com.travel.common.service.InnerUserService;
@@ -16,27 +13,18 @@ import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.HighlightQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
-import org.springframework.data.elasticsearch.core.query.highlight.HighlightCommonParameters;
-import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
-import org.springframework.data.elasticsearch.core.query.highlight.HighlightFieldParameters;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -66,31 +54,21 @@ public class InnerTeamServiceImpl implements InnerTeamService {
     public Page<TeamVDTO> searchFromEs(TeamQueryRequest teamQueryRequest) {
         // todo: 从 ES 中搜索数据，并需要从数据库中储存数据
         // ES 中只存储需要搜索的字段
-        Long id = teamQueryRequest.getId();
         String searchText = teamQueryRequest.getSearchText();
-        String teamName = teamQueryRequest.getTeamName();
-        String intro = teamQueryRequest.getIntro();
-        Long userId = teamQueryRequest.getUserId();
-        Integer teamState = teamQueryRequest.getTeamState();
+
         // es 起始页为 0
         long current = teamQueryRequest.getCurrent() - 1;
         long pageSize = teamQueryRequest.getPageSize();
+
+        // 获取排序字段
         String sortField = teamQueryRequest.getSortField();
         String sortOrder = teamQueryRequest.getSortOrder();
+
+        // 构建 bool 查询器
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        // 过滤
-        if (id != null) {
-            boolQueryBuilder.filter(QueryBuilders.termQuery("id", id));
-        }
 
-        if (userId != null) {
-            boolQueryBuilder.filter(QueryBuilders.termQuery("userId", userId));
-        }
-
-        // todo: 状态正常（需要前端控制吗）
-        if (teamState != null) {
-            boolQueryBuilder.filter(QueryBuilders.termQuery("teamState", 0));
-        }
+        // 状态正常的
+        boolQueryBuilder.filter(QueryBuilders.termQuery("teamState", 0));
 
         // 按关键词检索
         if (StringUtils.isNotBlank(searchText)) {
@@ -99,31 +77,19 @@ public class InnerTeamServiceImpl implements InnerTeamService {
             boolQueryBuilder.minimumShouldMatch(1);
         }
 
-        // 按标题检索
-        if (StringUtils.isNotBlank(teamName)) {
-            boolQueryBuilder.should(QueryBuilders.matchQuery("teamName", teamName));
-            boolQueryBuilder.minimumShouldMatch(1);
-        }
-
-        // 按内容检索
-        if (StringUtils.isNotBlank(intro)) {
-            boolQueryBuilder.should(QueryBuilders.matchQuery("intro", intro));
-            boolQueryBuilder.minimumShouldMatch(1);
-        }
-
         // 排序
-        SortBuilder<?> sortBuilder = SortBuilders.scoreSort();
+        /*SortBuilder<?> sortBuilder = SortBuilders.scoreSort();
         if (StringUtils.isNotBlank(sortField)) {
             sortBuilder = SortBuilders.fieldSort(sortField);
             sortBuilder.order(CommonConstant.SORT_ORDER_ASC.equals(sortOrder) ? SortOrder.ASC : SortOrder.DESC);
-        }
+        }*/
 
         // 分页
         PageRequest pageRequest = PageRequest.of((int) current, (int) pageSize);
 
         // 构造查询（高亮查询）
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(boolQueryBuilder)
-                .withPageable(pageRequest).withSorts(sortBuilder)
+                .withPageable(pageRequest)
                 .withHighlightFields(new HighlightBuilder.Field("teamName")).build();
 
         SearchHits<TeamEsDTO> searchHits = elasticsearchRestTemplate.search(searchQuery, TeamEsDTO.class);
@@ -144,9 +110,15 @@ public class InnerTeamServiceImpl implements InnerTeamService {
             searchHitList.stream().forEach(searchHit ->
                     teamIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("teamName").get(0)));
 
+            // todo：注意 sortField 若为 all，则表示综合排序
+            // 从数据库中取出更完整的数据（并排序）
+            QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+            teamQueryWrapper.in("id", teamIdNameMap.keySet());
+            teamQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            List<Team> teamList = teamMapper.selectList(teamQueryWrapper);
 
-            // 从数据库中取出更完整的数据
-            List<Team> teamList = teamMapper.selectBatchIds(teamIdNameMap.keySet());
+
+            // List<Team> teamList = teamMapper.selectBatchIds(teamIdNameMap.keySet());
             if (teamList != null) {
                 // 将数据库中的团队列表 -> （团队 id，团队列表）
                 Map<Long, List<Team>> idTeamMap = teamList.stream().collect(Collectors.groupingBy(Team::getId));
@@ -171,21 +143,41 @@ public class InnerTeamServiceImpl implements InnerTeamService {
         // 设置记录值
         page.setRecords(resourceList);
 
-        // teamVOPage -> teamVDTOPage
+        return objPageToVdtoPage(page);
+    }
+
+    @Override
+    public Page<TeamVDTO> listPersonalRcmd(Set<Long> idList, long pageNum, long pageSize) {
+        // todo：查询个性化推荐实体列表
+        QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+        teamQueryWrapper.in("id", idList);
+        Page<Team> page = teamService.page(new Page<>(pageNum, pageSize), teamQueryWrapper);
+
+        return objPageToVdtoPage(page);
+    }
+
+    /**
+     * 将实体 page 转换成 VDTO page
+     * @param teamPage
+     * @return
+     */
+    private Page<TeamVDTO> objPageToVdtoPage(Page<Team> teamPage) {
+        // teamPage -> teamVDTOPage
         // 将 teamPage -> teamVOPage
-        List<TeamVO> teamVOList = teamService.getTeamVOPage(page).getRecords();
-        Page<TeamVDTO> teamVDTOPage = new Page<>();
+        List<TeamVO> teamVOList = teamService.getTeamVOPage(teamPage).getRecords();
+        Page<TeamVDTO> teamVDTOPage = new Page<>(teamPage.getCurrent(), teamPage.getSize());
+
         // 将 teamVOList -> teamVDTOList
         List<TeamVDTO> teamVDTOList = teamVOList.stream().map(team -> {
             TeamVDTO teamVDTO = new TeamVDTO();
             BeanUtils.copyProperties(team, teamVDTO);
             return teamVDTO;
         }).collect(Collectors.toList());
+
         // 为 teamVDTOPage 注入属性
-        teamVDTOPage.setTotal(page.getTotal());
+        teamVDTOPage.setTotal(teamPage.getTotal());
         teamVDTOPage.setRecords(teamVDTOList);
+
         return teamVDTOPage;
-
     }
-
 }

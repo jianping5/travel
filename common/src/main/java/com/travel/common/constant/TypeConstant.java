@@ -1,7 +1,5 @@
 package com.travel.common.constant;
 
-
-import lombok.Data;
 import org.apache.commons.lang3.ObjectUtils;
 
 /**
@@ -13,62 +11,62 @@ public enum TypeConstant {
     /**
      * 用户
      */
-    USER(0, "用户"),
+    USER(0, "user"),
 
     /**
      * 文章游记
      */
-    ARTICLE(1, "文章"),
+    ARTICLE(1, "article"),
 
     /**
      * 视频游记
      */
-    VIDEO(2, "视频"),
+    VIDEO(2, "video"),
 
     /**
      * 官方
      */
-    OFFICIAL(3, "官方"),
+    OFFICIAL(3, "official"),
 
     /**
      * 团队
      */
-    TEAM(4, "团队"),
+    TEAM(4, "team"),
 
     /**
      * 官方资源
      */
-    OFFICIAL_RESOURCE(5, "官方资源"),
+    OFFICIAL_RESOURCE(5, "officialResource"),
 
     /**
      * 资讯通知
      */
-    NOTIFICATION(6, "资讯通知"),
+    NOTIFICATION(6, "notification"),
 
     /**
      * 周边
      */
-    DERIVATIVE(7, "周边"),
+    DERIVATIVE(7, "derivative"),
 
     /**
      * 评论
      */
-    COMMENT(8, "评论"),
+    COMMENT(8, "comment"),
 
     /**
      * 动态
      */
-    NEWS(9, "动态"),
+    NEWS(9, "news"),
 
     /**
      * 点评
      */
-    REVIEW(10, "点评"),
+    REVIEW(10, "review"),
 
     /**
      * 关注
      */
-    FOLLOW(11, "关注");
+    FOLLOW(11, "follow");
 
     private Integer typeIndex;
 
@@ -103,5 +101,19 @@ public enum TypeConstant {
             }
         }
         return null;
+    }
+
+    /**
+     * 判断枚举类是否包含指定的 key
+     * @param typeIndex
+  翻新eturn
+     */
+    public static boolean containsKey(Integer typeIndex) {
+        for (TypeConstant typeConstant : TypeConstant.values()) {
+            if (typeConstant.getTypeIndex().equals(typeIndex)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

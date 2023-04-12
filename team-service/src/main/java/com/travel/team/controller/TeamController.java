@@ -1,6 +1,5 @@
 package com.travel.team.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.common.BaseResponse;
 import com.travel.common.common.DeleteRequest;
@@ -8,6 +7,7 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
+import com.travel.common.model.dto.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
@@ -19,13 +19,10 @@ import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamService;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.elasticsearch.client.ml.EvaluateDataFrameRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.awt.geom.QuadCurve2D;
 import java.util.List;
 
 /**
@@ -138,7 +135,6 @@ public class TeamController {
         return ResultUtils.success(true);
     }
 
-
     /**
      * 根据 id 获取团队介绍详情
      *
@@ -235,7 +231,7 @@ public class TeamController {
      * @param teamQueryRequest
      * @return
      */
-    @PostMapping("/my/join")
+    @PostMapping("/join/list")
     public BaseResponse<List<Team>> listMyTeam(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -279,5 +275,15 @@ public class TeamController {
         return ResultUtils.success(true);
     }
 
+    @GetMapping("/member/{teamId}")
+    public BaseResponse<List<UserDTO>> listTeamMember(@PathVariable Long teamId) {
+        // 校验参数
+        if (teamId == null || teamId < 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 返回结果
+        return ResultUtils.success(teamService.listTeamMember(teamId));
+    }
 
 }

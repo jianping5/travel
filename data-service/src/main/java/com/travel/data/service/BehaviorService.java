@@ -1,5 +1,7 @@
 package com.travel.data.service;
 
+import com.travel.common.model.vo.SearchVDTO;
+import com.travel.data.model.dto.PersonalRcmdRequest;
 import com.travel.data.model.entity.Behavior;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -10,4 +12,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface BehaviorService extends IService<Behavior> {
 
+    /**
+     * 获取指定类型的个性化推荐
+     * @param personalRcmdRequest
+     * @return
+     */
+    SearchVDTO listPersonalRcmd(PersonalRcmdRequest personalRcmdRequest);
 }

@@ -1,6 +1,5 @@
 package com.travel.travel.service.inner;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.exception.ThrowUtils;

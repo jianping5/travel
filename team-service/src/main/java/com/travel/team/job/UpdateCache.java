@@ -1,7 +1,6 @@
 package com.travel.team.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;
@@ -11,9 +10,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.redisson.api.RList;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
 import java.time.Duration;
@@ -39,7 +36,7 @@ public class UpdateCache {
     private Gson gson;
 
     /**
-     * 更新缓存
+     * 更新推荐团队缓存
      */
     public void execute() {
         RLock lock = redissonClient.getLock("travel:precache:team:lock");
@@ -61,11 +58,11 @@ public class UpdateCache {
                 QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
                 teamQueryWrapper.last("order by 5*travel_count+3*news_count+2*team_size desc limit 50");
                 List<Team> teamList = teamService.list(teamQueryWrapper);
-                List<TeamVO> teamVOList = teamList.stream().map(team -> teamService.getTeamVO(team)).collect(Collectors.toList());
+                List<TeamVO> teamVOList = teamService.getTeamVOList(teamList);
 
                 // 写缓存
                 try {
-                    // todo: 需要转换成 json 格式再添加吗
+                    // todo: 需要转换成 json 格式再添加吗  写缓存之前需要删除吗？
                     RList<String> list = redissonClient.getList(redisKey);
                     List<String> teamVOStrList = teamVOList.stream().map(teamVO -> gson.toJson(teamVO)).collect(Collectors.toList());
                     list.addAll(teamVOStrList);

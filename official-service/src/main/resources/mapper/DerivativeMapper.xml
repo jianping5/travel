@@ -29,4 +29,9 @@
         type_id,view_count,obtain_count,
         derivative_state,create_time,update_time
     </sql>
+    <select id="listDerivativeWithDelete" resultType="com.travel.official.model.entity.Derivative">
+        select <include refid="Base_Column_List"/>
+        from derivative
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>
