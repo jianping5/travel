@@ -1,8 +1,11 @@
 package com.travel.user.model.request;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author jianping5
@@ -10,62 +13,63 @@ import java.io.Serializable;
  */
 @Data
 public class UserUpdateRequest implements Serializable {
-
-
     /**
      * 主键
      */
     private Long id;
 
     /**
-     * 所属用户 id
+     * 用户 id
      */
     private Long userId;
 
     /**
-     * 所属官方 id
+     * 用户账号
      */
-    private Long officialId;
+    private String userAccount;
 
     /**
-     * 周边名称
+     * 用户密码
      */
-    private String derivativeName;
+    private String userPassword;
 
     /**
-     * 封面 URL
+     * 用户昵称
      */
-    private String coverUrl;
+    private String userName;
 
     /**
-     * 周边价格
+     * 头像 URL
      */
-    private Double price;
+    private String userAvatar;
 
     /**
-     * 周边介绍
+     * 手机号
      */
-    private String intro;
+    private String phone;
 
     /**
-     * 获取方式（0：现金 1：代币）
+     * 用户邮箱
      */
-    private Integer obtainMethod;
+    private String email;
 
     /**
-     * 周边数量
+     * 个性签名
      */
-    private Integer totalCount;
+    private String signature;
 
     /**
-     * 类型 id
+     * 生日
      */
-    private Integer typeId;
+    private Date birth;
 
     /**
-     * 周边状态（0：正常 1：异常 2：下架）
+     * 性别（0：女 1：男）
      */
-    private Integer derivativeState;
-
+    private Integer sex;
+    /**
+     * 关注数
+     */
+    private Integer followCount;
     private static final long serialVersionUID = 1L;
 }

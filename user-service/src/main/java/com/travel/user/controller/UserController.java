@@ -4,20 +4,20 @@ package com.travel.user.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.travel.common.common.BaseResponse;
+import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
+import com.travel.common.exception.ThrowUtils;
 import com.travel.common.service.InnerTeamService;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
-import com.travel.user.model.request.CodeCheckRequest;
-import com.travel.user.model.request.CodeSendRequest;
-import com.travel.user.model.request.LoginRequest;
-import com.travel.user.model.request.RegisterRequest;
+import com.travel.user.model.request.*;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.FormatValidator;
 import com.travel.user.utils.UserHolder;
@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
     @Resource()

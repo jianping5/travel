@@ -29,6 +29,13 @@ public interface ArticleService extends IService<Article> {
     ArticleVO getArticleVO(Article Article, ArticleDetail articleDetail);
 
     /**
+     * 获取文章游记视图体
+     * @param article
+     * @return
+     */
+    ArticleVO getArticleDetailVO(Article article);
+
+    /**
      * 获取分页文章游记视图体
      * @param ArticlePage
      * @return

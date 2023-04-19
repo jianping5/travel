@@ -1,16 +1,21 @@
 package com.travel.common.model.dto.travel;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 文章表
- * @TableName article
+ * @author zgy
+ * @create 2023-04-03 22:21
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ArticleDTO implements Serializable {
+
 
     /**
      * 主键
@@ -18,9 +23,24 @@ public class ArticleDTO implements Serializable {
     private Long id;
 
     /**
+     * 详情id
+     */
+    private Long detailId;
+
+    /**
      * 所属用户 id
      */
     private Long userId;
+
+    /**
+     * 头像 URL
+     */
+    private String userAvatar;
+
+    /**
+     * 用户昵称
+     */
+    private String userName;
 
     /**
      * 标题
@@ -53,6 +73,11 @@ public class ArticleDTO implements Serializable {
     private String intro;
 
     /**
+     * 文章详情
+     */
+    private String detail;
+
+    /**
      * 地理位置
      */
     private String location;
@@ -78,19 +103,14 @@ public class ArticleDTO implements Serializable {
     private Integer viewCount;
 
     /**
-     * 文章状态（0：正常 1：异常 2：删除）
+     * 是否已点赞
      */
-    private Integer articleState;
+    private Integer isLiked;
 
     /**
-     * 文章详情 id
+     * 是否已收藏
      */
-    private Long articleDetailId;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+    private Integer isCollected;
 
     /**
      * 更新时间
@@ -98,5 +118,4 @@ public class ArticleDTO implements Serializable {
     private Date updateTime;
 
     private static final long serialVersionUID = 1L;
-
 }

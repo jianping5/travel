@@ -1,12 +1,14 @@
 package com.travel.travel.model.vo;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.travel.travel.model.entity.Article;
 import com.travel.travel.model.entity.ArticleDetail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -16,13 +18,18 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ArticleVO {
+public class ArticleVO implements Serializable {
 
 
     /**
      * 主键
      */
     private Long id;
+
+    /**
+     * 详情id
+     */
+    private Long detailId;
 
     /**
      * 所属用户 id
@@ -110,9 +117,17 @@ public class ArticleVO {
     private Integer isCollected;
 
     /**
+     * 是否已关注
+     */
+    private Integer isFollowed;
+
+    /**
      * 更新时间
      */
     private Date updateTime;
+
+
+    private static final long serialVersionUID = 1L;
 
     public static ArticleVO objToVo(Article article, ArticleDetail articleDetail){
         if(article == null){
@@ -120,7 +135,9 @@ public class ArticleVO {
         }
         ArticleVO articleVO = new ArticleVO();
         BeanUtil.copyProperties(article,articleVO);
-        BeanUtil.copyProperties(articleDetail,articleVO);
+        if(articleDetail!=null){
+            BeanUtil.copyProperties(articleDetail,articleVO);
+        }
         return articleVO;
     }
 }

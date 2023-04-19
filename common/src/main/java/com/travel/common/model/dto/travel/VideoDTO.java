@@ -1,15 +1,20 @@
 package com.travel.common.model.dto.travel;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
 
+
 /**
- * 视频表
- * @TableName video
+ * @author zgy
+ * @create 2023-04-03 22:21
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class VideoDTO implements Serializable {
 
     /**
@@ -21,6 +26,16 @@ public class VideoDTO implements Serializable {
      * 所属用户 id
      */
     private Long userId;
+
+    /**
+     * 头像 URL
+     */
+    private String userAvatar;
+
+    /**
+     * 用户昵称
+     */
+    private String userName;
 
     /**
      * 标题
@@ -83,14 +98,14 @@ public class VideoDTO implements Serializable {
     private Integer viewCount;
 
     /**
-     * 文章状态（0：正常 1：异常 2：删除）
+     * 是否已点赞
      */
-    private Integer videoState;
+    private Integer isLiked;
 
     /**
-     * 创建时间
+     * 是否已收藏
      */
-    private Date createTime;
+    private Integer isCollected;
 
     /**
      * 更新时间

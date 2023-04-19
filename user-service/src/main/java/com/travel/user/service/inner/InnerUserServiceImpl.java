@@ -2,6 +2,7 @@ package com.travel.user.service.inner;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -12,14 +13,17 @@ import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.dto.user.UserQueryRequest;
 import com.travel.common.model.vo.UserVDTO;
 import com.travel.common.service.InnerUserService;
+import com.travel.user.model.entity.History;
 import com.travel.user.mapper.UserInfoMapper;
 import com.travel.user.model.dto.UserEsDTO;
 import com.travel.user.model.entity.User;
 import com.travel.user.model.entity.UserInfo;
 import com.travel.user.model.entity.UserLike;
+import com.travel.user.service.HistoryService;
 import com.travel.user.service.UserInfoService;
 import com.travel.user.service.UserLikeService;
 import com.travel.user.service.UserService;
+import org.apache.commons.lang3.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -43,7 +47,6 @@ import java.util.stream.Collectors;
  * @createDate 23/3/2023 下午 5:46
  */
 @DubboService
-@Slf4j
 public class InnerUserServiceImpl implements InnerUserService {
 
     @Resource
@@ -53,10 +56,10 @@ public class InnerUserServiceImpl implements InnerUserService {
     private UserService userService;
 
     @Resource
-    private UserInfoMapper userInfoMapper;
+    private UserLikeService userLikeService;
 
     @Resource
-    private UserLikeService userLikeService;
+    private HistoryService historyService;
 
     @Resource
     private Gson gson;
@@ -368,4 +371,17 @@ public class InnerUserServiceImpl implements InnerUserService {
     }
 
 
+
+    @Override
+    public boolean addHistory(Long userId, Integer historyObjType, Long historyObjId) {
+        History history = new History();
+        history.setUserId(userId);history.setHistoryObjType(historyObjType);history.setHistoryObjId(historyObjId);
+        historyService.validHistory(history,true);
+        History addHistory = historyService.addHistory(history);
+        if(addHistory!=null){
+            return true;
+        }else {
+            return false;
+        }
+    }
 }

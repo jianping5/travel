@@ -1,6 +1,7 @@
 package com.travel.travel.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.model.entity.User;
 import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.model.entity.Video;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -24,7 +25,7 @@ public interface VideoService extends IService<Video> {
      * @param Video
      * @return
      */
-    VideoVO getVideoVO(Video Video);
+    VideoVO getVideoDetail(Video Video);
 
     /**
      * 获取分页视频游记视图体

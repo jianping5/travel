@@ -4,12 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.common.ErrorCode;
+import com.travel.common.constant.BehaviorTypeConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
+import com.travel.travel.model.entity.Article;
+import com.travel.travel.model.entity.ArticleDetail;
+import com.travel.travel.model.vo.ArticleVO;
 import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.model.entity.Video;
 import com.travel.travel.model.request.VideoQueryRequest;
@@ -18,10 +23,16 @@ import com.travel.travel.mapper.VideoMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,10 +42,16 @@ import java.util.stream.Collectors;
 */
 @Service
 public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
-    implements VideoService{
+    implements VideoService, com.travel.common.service.VideoService {
 
     @DubboReference
     private InnerUserService innerUserService;
+
+    @Resource()
+    private RedissonClient redissonClient;
+    
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void validVideo(Video video, boolean add) {
@@ -62,9 +79,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
     }
 
     @Override
-    public VideoVO getVideoVO(Video video) {
+    public VideoVO getVideoDetail(Video video) {
+        // 获取官方视图体
         VideoVO videoVO = VideoVO.objToVo(video);
-
         //查询用户信息
         Long userId = video.getUserId();
         UserDTO user = innerUserService.getUser(userId);
@@ -74,6 +91,31 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         }else {
             videoVO.setUserName("用户不存在");
             videoVO.setUserAvatar("");
+        }
+        //获取当前登录对象
+        User loginUser = UserHolder.getUser();
+        if(user!=null){
+            Long loginUserId = loginUser.getId();
+
+            // 插入历史记录
+            String historyMsg = loginUserId+","+ TypeConstant.VIDEO.getTypeIndex()+","+video.getId();
+            rabbitTemplate.convertAndSend("user.history.execute",historyMsg);
+
+            // 加入用户行为记录表（消息队列）
+            String behaviorMsg = loginUserId+","+TypeConstant.VIDEO.getTypeIndex()+","+video.getId()+","+ BehaviorTypeConstant.VIEW.getTypeIndex();
+            rabbitTemplate.convertAndSend("user.behavior.execute",behaviorMsg);
+
+            // 注入点赞状态
+            RSet<Long> likeSet = redissonClient.getSet("travel:user:like:" + TypeConstant.VIDEO + ":" + video.getId());
+            videoVO.setIsLiked(likeSet.contains(loginUserId)?1:0);
+
+            // 注入收藏状态
+            RSet<Long> collectSet = redissonClient.getSet("travel:user:collection:" + TypeConstant.VIDEO + ":" + video.getId());
+            videoVO.setIsCollected(collectSet.contains(loginUserId)?1:0);
+
+            // 注入关注状态
+            RSet<Long> followSet = redissonClient.getSet("travel:user:follow:"+ video.getUserId());
+            videoVO.setIsFollowed(followSet.contains(loginUserId)?1:0);
         }
         return videoVO;
     }
@@ -90,12 +132,61 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         }
 
         // 填充信息
-        List<VideoVO> videoVOList = videoList.stream().map(video -> {
-            VideoVO videoVO = VideoVO.objToVo(video);
-            return videoVO;
-        }).collect(Collectors.toList());
+        List<VideoVO> videoVOList = getVideoVOList(videoList);
         videoVOPage.setRecords(videoVOList);
         return videoVOPage;
+    }
+
+    /**
+     * 根据文章列表获取文章视图体列表
+     * @param videoList
+     * @return
+     */
+    public List<VideoVO> getVideoVOList(List<Video> videoList) {
+        // 获取用户 id 列表
+        Set<Long> userIdSet = videoList.stream().map(Video::getUserId).collect(Collectors.toSet());
+
+        // 获取用户列表
+        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
+
+        // 将用户 id 和用户对应起来
+        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
+
+        // 填充信息
+        List<VideoVO> videoVOList = videoList.stream().map(video -> {
+            // 获取官方视图体
+            VideoVO videoVO = VideoVO.objToVo(video);
+            // 注入用户到官方视图体内
+            Long userId = video.getUserId();
+            UserDTO userDTO = null;
+            if (userIdUserListMap.containsKey(userId)) {
+                userDTO = userIdUserListMap.get(userId).get(0);
+            }
+            videoVO.setUserAvatar(userDTO.getUserAvatar());
+            videoVO.setUserName(userDTO.getUserName());
+
+            //获取当前登录对象
+            User loginUser = UserHolder.getUser();
+            if(loginUser!=null){
+                Long loginUserId = loginUser.getId();
+
+                // 注入点赞状态
+                RSet<Long> likeSet = redissonClient.getSet("travel:user:like:" + TypeConstant.VIDEO + ":" + video.getId());
+                videoVO.setIsLiked(likeSet.contains(loginUserId)?1:0);
+
+                // 注入收藏状态
+                RSet<Long> collectSet = redissonClient.getSet("travel:user:collection:" + TypeConstant.VIDEO + ":" + video.getId());
+                videoVO.setIsCollected(collectSet.contains(loginUserId)?1:0);
+
+                // 注入关注状态
+                RSet<Long> followSet = redissonClient.getSet("travel:user:follow:"+ video.getUserId());
+                videoVO.setIsFollowed(followSet.contains(loginUserId)?1:0);
+            }
+
+            return videoVO;
+        }).collect(Collectors.toList());
+
+        return videoVOList;
     }
 
     @Override
@@ -105,6 +196,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
             return null;
         }
         // 获取查询条件中的字段
+        List<Long> idList = videoQueryRequest.getIdList();
         String searchText = videoQueryRequest.getSearchText();
         Long userId = videoQueryRequest.getUserId();
         Integer permission = videoQueryRequest.getPermission();
@@ -115,6 +207,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         Long pageSize = videoQueryRequest.getPageSize();
         Integer orderType = videoQueryRequest.getOrderType();
         int fromIndex = 0;
+        //id限制
+        if (!ObjectUtils.anyNull(idList)) {
+            queryWrapper.in(ObjectUtils.isNotEmpty(idList),"id", idList);
+        }
         //内容模糊限制
         if (StringUtils.isNotBlank(searchText)) {
             queryWrapper.like("tag", searchText).or().like("intro", searchText).or().like("title", searchText);
@@ -164,8 +260,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
 //        videoPage.setSize(pageSize);
 //        videoPage.setRecords(videoList);
 //        videoPage.setCurrent(0);
-        Page page = page(new Page(current, pageSize), queryWrapper);
-        return page;
+        return page(new Page<>(current, pageSize), queryWrapper);
     }
 
     @Override

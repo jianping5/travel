@@ -15,6 +15,7 @@ import lombok.Data;
 @TableName(value ="history")
 @Data
 public class History implements Serializable {
+
     /**
      * 主键
      */

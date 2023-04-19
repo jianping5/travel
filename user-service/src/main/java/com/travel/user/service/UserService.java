@@ -37,9 +37,16 @@ public interface UserService extends IService<User> {
     */
    BaseResponse<User> userRegister(String credential,Integer credentialType,String password);
 
+   void validUser(UserInfo userInfo, boolean b);
+
+   boolean updateUser(UserInfo userInfo);
+   
    UserVO getUserVO(User user);
 
+
+
    User traverseUser(User user);
+
 
 
 }

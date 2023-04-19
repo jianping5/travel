@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * @author zgy
  * @create 2023-04-03 16:31
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserVO {
+public class UserVO implements Serializable {
 
     /**
      * 用户 id
@@ -56,4 +58,6 @@ public class UserVO {
      * 用户昵称
      */
     private String userName;
+
+    private static final long serialVersionUID = 1L;
 }

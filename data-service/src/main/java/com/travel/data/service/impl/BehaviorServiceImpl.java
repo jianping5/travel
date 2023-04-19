@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 */
 @Service
 public class BehaviorServiceImpl extends ServiceImpl<BehaviorMapper, Behavior>
-    implements BehaviorService{
+    implements BehaviorService {
 
     @Resource
     private ServiceRegistry serviceRegistry;
