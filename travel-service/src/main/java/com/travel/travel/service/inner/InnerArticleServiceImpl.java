@@ -27,7 +27,6 @@ public class InnerArticleServiceImpl implements InnerArticleService {
     @Resource
     private ArticleService articleService;
 
-
     @Override
     public Page<ArticleVDTO> listPersonalRcmd(Set<Long> idList, long pageNum, long pageSize) {
         // todo：查询个性化推荐实体列表

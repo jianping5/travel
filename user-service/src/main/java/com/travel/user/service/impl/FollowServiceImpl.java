@@ -7,27 +7,22 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
+import com.travel.user.mapper.FollowMapper;
 import com.travel.user.model.dto.FollowVO;
 import com.travel.user.model.entity.Follow;
 import com.travel.user.model.request.FollowQueryRequest;
 import com.travel.user.model.request.FollowRequest;
 import com.travel.user.service.FollowService;
-import com.travel.user.mapper.FollowMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**

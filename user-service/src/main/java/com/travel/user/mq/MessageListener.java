@@ -3,18 +3,17 @@ package com.travel.user.mq;
 import com.google.gson.Gson;
 import com.travel.common.model.dto.MessageDTO;
 import com.travel.common.model.dto.user.UpdateTokenRequest;
-import com.travel.user.model.entity.Message;
-import com.travel.user.service.MessageService;
-import com.travel.user.service.inner.InnerUserServiceImpl;
-
+import com.travel.common.service.InnerUserService;
 import com.travel.user.model.entity.Collection;
 import com.travel.user.model.entity.Follow;
+import com.travel.user.model.entity.Message;
 import com.travel.user.model.entity.UserLike;
 import com.travel.user.model.request.UserLikeRequest;
 import com.travel.user.service.CollectionService;
 import com.travel.user.service.FollowService;
+import com.travel.user.service.MessageService;
 import com.travel.user.service.UserLikeService;
-import io.swagger.models.auth.In;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -41,8 +40,8 @@ public class MessageListener {
     @Resource
     private Gson gson;
 
-    @Resource
-    private InnerUserServiceImpl innerUserService;
+    @DubboReference
+    private InnerUserService innerUserService;
 
     @Resource
     private MessageService messageService;

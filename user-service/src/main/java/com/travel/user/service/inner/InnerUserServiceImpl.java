@@ -2,7 +2,6 @@ package com.travel.user.service.inner;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -13,9 +12,9 @@ import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.dto.user.UserQueryRequest;
 import com.travel.common.model.vo.UserVDTO;
 import com.travel.common.service.InnerUserService;
-import com.travel.user.model.entity.History;
 import com.travel.user.mapper.UserInfoMapper;
 import com.travel.user.model.dto.UserEsDTO;
+import com.travel.user.model.entity.History;
 import com.travel.user.model.entity.User;
 import com.travel.user.model.entity.UserInfo;
 import com.travel.user.model.entity.UserLike;
@@ -23,7 +22,6 @@ import com.travel.user.service.HistoryService;
 import com.travel.user.service.UserInfoService;
 import com.travel.user.service.UserLikeService;
 import com.travel.user.service.UserService;
-import org.apache.commons.lang3.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -46,6 +44,7 @@ import java.util.stream.Collectors;
  * @author jianping5
  * @createDate 23/3/2023 下午 5:46
  */
+@Slf4j
 @DubboService
 public class InnerUserServiceImpl implements InnerUserService {
 
@@ -60,6 +59,9 @@ public class InnerUserServiceImpl implements InnerUserService {
 
     @Resource
     private HistoryService historyService;
+
+    @Resource
+    private UserInfoMapper userInfoMapper;
 
     @Resource
     private Gson gson;

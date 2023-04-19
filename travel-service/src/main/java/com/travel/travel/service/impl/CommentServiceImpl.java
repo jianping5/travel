@@ -12,18 +12,19 @@ import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
+import com.travel.travel.mapper.CommentMapper;
 import com.travel.travel.model.entity.Comment;
 import com.travel.travel.model.request.CommentQueryRequest;
 import com.travel.travel.model.vo.CommentVO;
 import com.travel.travel.model.vo.CommentVOBlock;
 import com.travel.travel.service.CommentService;
-import com.travel.travel.mapper.CommentMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,10 +37,13 @@ import java.util.stream.Collectors;
 */
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService, com.travel.common.service.CommentService {
+
     @DubboReference
     private InnerUserService innerUserService;
-    @Resource()
+
+    @Resource
     private RedissonClient redissonClient;
+
     @Override
     public void validComment(Comment comment, boolean add) {
         if (comment == null) {

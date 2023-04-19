@@ -1,8 +1,6 @@
 package com.travel.common.model.dto.travel;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,8 +11,6 @@ import java.util.Date;
  * @create 2023-04-03 22:21
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class VideoDTO implements Serializable {
 
     /**
@@ -106,6 +102,11 @@ public class VideoDTO implements Serializable {
      * 是否已收藏
      */
     private Integer isCollected;
+
+    /**
+     * 发布时间
+     */
+    private Date createTime;
 
     /**
      * 更新时间

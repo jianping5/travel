@@ -1,8 +1,6 @@
 package com.travel.common.model.dto.travel;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -12,8 +10,6 @@ import java.util.Date;
  * @create 2023-04-03 22:21
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class ArticleDTO implements Serializable {
 
 
@@ -21,11 +17,6 @@ public class ArticleDTO implements Serializable {
      * 主键
      */
     private Long id;
-
-    /**
-     * 详情id
-     */
-    private Long detailId;
 
     /**
      * 所属用户 id
@@ -73,6 +64,11 @@ public class ArticleDTO implements Serializable {
     private String intro;
 
     /**
+     * 文章详情 id
+     */
+    private Long articleDetailId;
+
+    /**
      * 文章详情
      */
     private String detail;
@@ -111,6 +107,11 @@ public class ArticleDTO implements Serializable {
      * 是否已收藏
      */
     private Integer isCollected;
+
+    /**
+     * 发布时间
+     */
+    private Date createTime;
 
     /**
      * 更新时间

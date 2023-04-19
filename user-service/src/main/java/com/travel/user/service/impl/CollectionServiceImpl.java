@@ -7,18 +7,16 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
+import com.travel.user.mapper.CollectionMapper;
 import com.travel.user.model.dto.CollectionVO;
-import com.travel.user.model.entity.Collection;
 import com.travel.user.model.entity.Collection;
 import com.travel.user.model.entity.Favorite;
 import com.travel.user.model.request.CollectionQueryRequest;
 import com.travel.user.model.request.CollectionRequest;
 import com.travel.user.service.CollectionService;
-import com.travel.user.mapper.CollectionMapper;
 import com.travel.user.service.FavoriteService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,10 +26,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
 * @author jianping5
