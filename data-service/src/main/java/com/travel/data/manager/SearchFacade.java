@@ -5,10 +5,7 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.vo.DerivativeVDTO;
-import com.travel.common.model.vo.OfficialVDTO;
-import com.travel.common.model.vo.SearchVDTO;
-import com.travel.common.model.vo.TeamVDTO;
+import com.travel.common.model.vo.*;
 import com.travel.data.datasource.*;
 import com.travel.data.model.dto.SearchRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +31,15 @@ public class SearchFacade {
 
     @Resource
     private DerivativeDataSource derivativeDataSource;
+
+    @Resource
+    private UserDataSource userDataSource;
+
+    @Resource
+    private ArticleDataSource articleDataSource;
+
+    @Resource
+    private VideoDataSource videoDataSource;
 
     @Resource
     private DataSourceRegistry dataSourceRegistry;
@@ -66,7 +72,22 @@ public class SearchFacade {
                 return derivativeVDTOPage;
             });
 
-            CompletableFuture.allOf(teamTask, officialTask, derivativeTask).join();
+            CompletableFuture<Page<UserVDTO>> userTask = CompletableFuture.supplyAsync(() -> {
+                Page<UserVDTO> userVDTOPage = userDataSource.doSearch(searchRequest, current, pageSize);
+                return userVDTOPage;
+            });
+
+            CompletableFuture<Page<ArticleVDTO>> articleTask = CompletableFuture.supplyAsync(() -> {
+                Page<ArticleVDTO> articleVDTOPage = articleDataSource.doSearch(searchRequest, current, pageSize);
+                return articleVDTOPage;
+            });
+
+            CompletableFuture<Page<VideoVDTO>> videoTask = CompletableFuture.supplyAsync(() -> {
+                Page<VideoVDTO> videoVDTOPage = videoDataSource.doSearch(searchRequest, current, pageSize);
+                return videoVDTOPage;
+            });
+
+            CompletableFuture.allOf(teamTask, officialTask, derivativeTask, userTask, articleTask, videoTask).join();
 
             // todo：填充数据
             try {
@@ -79,10 +100,22 @@ public class SearchFacade {
                 // 获取周边
                 Page<DerivativeVDTO> derivativeVDTOPage = derivativeTask.get();
 
+                // 获取用户
+                Page<UserVDTO> userVDTOPage = userTask.get();
+
+                // 获取文章游记
+                Page<ArticleVDTO> articleVDTOPage = articleTask.get();
+
+                // 获取视频游记
+                Page<VideoVDTO> videoVDTOPage = videoTask.get();
+
                 SearchVDTO searchVDTO = new SearchVDTO();
                 searchVDTO.setTeamVDTOPage(teamVDTOPage);
                 searchVDTO.setOfficialVDTOPage(officialVDTOPage);
                 searchVDTO.setDerivativeVDTOPage(derivativeVDTOPage);
+                searchVDTO.setUserVDTOPage(userVDTOPage);
+                searchVDTO.setArticleVDTOPage(articleVDTOPage);
+                searchVDTO.setVideoVDTOPage(videoVDTOPage);
 
                 return searchVDTO;
             } catch (Exception e) {

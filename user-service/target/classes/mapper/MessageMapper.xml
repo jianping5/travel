@@ -7,6 +7,8 @@
     <resultMap id="BaseResultMap" type="com.travel.user.model.entity.Message">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="messageUserId" column="message_user_id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="content" column="content" jdbcType="VARCHAR"/>
             <result property="messageObjType" column="message_obj_type" jdbcType="INTEGER"/>
             <result property="messageObjId" column="message_obj_id" jdbcType="BIGINT"/>
@@ -17,7 +19,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_id,content,
+        id,user_id,title,content,message_user_id,
         message_obj_type,message_obj_id,message_state,
         is_deleted,create_time,update_time
     </sql>

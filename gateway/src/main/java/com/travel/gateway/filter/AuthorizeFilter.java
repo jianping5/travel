@@ -1,9 +1,10 @@
 package com.travel.gateway.filter;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.google.gson.Gson;
 import com.travel.gateway.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBucket;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -40,7 +41,7 @@ public class AuthorizeFilter implements GlobalFilter {
     /**
      * 白名单
      */
-    private final List<String> white_path_list = Arrays.asList("/user/login", "/v2/api-docs",
+    private final List<String> white_path_list = Arrays.asList("/user/login", "/login/test", "/v2/api-docs", "/get/vo",
             "/doc.html", "/swagger-resources", "/swagger-ui.html", "/swagger-resources/configuration/ui",
             "/swagger-resources/configuration/security", "/v2/api-docs-ext");
 
@@ -78,8 +79,15 @@ public class AuthorizeFilter implements GlobalFilter {
         log.info("token: " + token);
 
         // 用 token 去 redis 中查询对应的用户
-        RBucket<String> bucket = redissonClient.getBucket("user_login: " + token);
-        User user = gson.fromJson(bucket.get(), User.class);
+        // 根据 token 获取 user，并设置到 UserHodler 中，便于后续接口调用
+        RMap<Object, Object> map = redissonClient.getMap("user_login:" + token);
+
+        // 获取并刷新 user
+        User user = BeanUtil.fillBeanWithMap(map, new User(), false);
+        // map.expire(Duration.ofSeconds(2592000));
+
+        // RBucket<String> bucket = redissonClient.getBucket("user_login:" + token);
+        // User user = gson.fromJson(bucket.get(), User.class);
 
         // 若用户存在则放行
         if (user != null) {

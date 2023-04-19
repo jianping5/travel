@@ -1,6 +1,6 @@
 package com.travel.official.model.vo;
 
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.official.model.entity.Review;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -59,6 +59,11 @@ public class ReviewVO implements Serializable {
      * 是否删除
      */
     private Integer isDeleted;
+
+    /**
+     * 是否点赞
+     */
+    private Integer isLiked;
 
     /**
      * 发布用户

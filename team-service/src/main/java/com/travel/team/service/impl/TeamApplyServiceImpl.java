@@ -1,13 +1,14 @@
 package com.travel.team.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
@@ -75,6 +76,18 @@ public class TeamApplyServiceImpl extends ServiceImpl<TeamApplyMapper, TeamApply
         boolean updateResult = this.updateById(teamApply);
         ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
 
+        // todo：是否可以用消息队列实现
+        // 更新用户团队字段
+        innerUserService.changeTeam(teamApply.getUserId(), teamId, 0);
+
+
+        // 团队人数 +1
+        UpdateWrapper<Team> teamUpdateWrapper = new UpdateWrapper<>();
+        teamUpdateWrapper.eq("id", team.getId());
+        teamUpdateWrapper.setSql("team_size = team_size + 1");
+        int update = teamMapper.update(team, teamUpdateWrapper);
+        ThrowUtils.throwIf(update <= 0, ErrorCode.OPERATION_ERROR);
+
         return true;
     }
 
@@ -99,7 +112,7 @@ public class TeamApplyServiceImpl extends ServiceImpl<TeamApplyMapper, TeamApply
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         queryWrapper.eq(ObjectUtils.isNotEmpty(teamState), "team_state", 0);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(auditState), "audit_state", 0);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(auditState), "audit_state", auditState);
         return queryWrapper;
     }
 

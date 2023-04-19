@@ -7,7 +7,8 @@ import com.travel.common.common.ErrorCode;
  * 自定义异常类
  *
  * 
- * 
+ *
+ * @author jianping5
  */
 public class BusinessException extends RuntimeException {
 

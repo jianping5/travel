@@ -1,6 +1,6 @@
 package com.travel.official.model.vo;
 
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.official.model.entity.Notification;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

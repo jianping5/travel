@@ -15,8 +15,13 @@ import com.travel.official.model.entity.Official;
 import com.travel.official.model.vo.OfficialVO;
 import com.travel.official.service.OfficialDetailService;
 import com.travel.official.service.OfficialService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,7 +31,7 @@ import java.util.List;
  * @createDate 3/4/2023 下午 3:45
  */
 @RestController
-@RequestMapping("/official")
+@Api(tags = "官方 Controller")
 public class OfficialController {
 
     @Resource
@@ -41,6 +46,7 @@ public class OfficialController {
      * @param officialAddRequest
      * @return
      */
+    @ApiOperation(value = "添加官方介绍")
     @PostMapping("/add")
     public BaseResponse<Long> addOfficial(@RequestBody OfficialAddRequest officialAddRequest) {
         // 校验请求体
@@ -64,6 +70,7 @@ public class OfficialController {
      * @param officialUpdateRequest
      * @return
      */
+    @ApiOperation(value = "更新官方介绍")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateOfficial(@RequestBody OfficialUpdateRequest officialUpdateRequest) {
         // 校验官方更新请求体
@@ -94,6 +101,7 @@ public class OfficialController {
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取官方视图体（不包含官方详情）")
     @GetMapping("/vo")
     public BaseResponse<OfficialVO> getOfficialVOById(long id) {
         // 校验 id
@@ -114,6 +122,7 @@ public class OfficialController {
      * @param officialQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/vo/page/list")
     public BaseResponse<Page<OfficialVO>> listOfficialVOByPage(@RequestBody OfficialQueryRequest officialQueryRequest) {
         if (officialQueryRequest == null) {
@@ -133,6 +142,7 @@ public class OfficialController {
     /**
      * 根据 Id 获取官方详情
      */
+    @ApiOperation(value = "根据 Id 获取官方详情")
     @GetMapping("/detail")
     public BaseResponse<OfficialVO> getOfficialDetail(long offId, long detailId) {
         // 校验 id
@@ -157,6 +167,7 @@ public class OfficialController {
      * @param officialQueryRequest
      * @return
      */
+    @ApiOperation(value = "获取推荐官方（大众化推荐）")
     @PostMapping("/rcmd")
     public BaseResponse<List<OfficialVO>> listRcmdOfficialVO(@RequestBody OfficialQueryRequest officialQueryRequest) {
         if (officialQueryRequest == null) {
@@ -181,6 +192,7 @@ public class OfficialController {
     /**
      * 点赞
      */
+    @ApiOperation(value = "点赞官方、官方点评、官方资源")
     @PostMapping("/like")
     public BaseResponse<Boolean> likeOfficial(@RequestBody OfficialLikeRequest officialLikeRequest) {
         // 校验请求体

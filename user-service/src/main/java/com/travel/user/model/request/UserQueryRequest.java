@@ -4,6 +4,7 @@ import com.travel.common.common.PageRequest;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author jianping5
@@ -18,12 +19,7 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     private Long id;
 
     /**
-     * 所属用户 id
-     */
-    private Long userId;
-
-    /**
-     * 所属官方 id
+     * 所管官方 id
      */
     private Long officialId;
 
@@ -33,34 +29,19 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     private String searchText;
 
     /**
-     * 周边名称
+     * 团队 id
      */
-    private String derivativeName;
+    private String teamId;
 
     /**
-     * 封面 URL
+     * 代币数
      */
-    private String coverUrl;
+    private Integer token;
 
     /**
-     * 周边价格
+     * 发布地理位置
      */
-    private Double price;
-
-    /**
-     * 周边介绍
-     */
-    private String intro;
-
-    /**
-     * 获取方式（0：现金 1：代币）
-     */
-    private Integer obtainMethod;
-
-    /**
-     * 周边数量
-     */
-    private Integer totalCount;
+    private String location;
 
     /**
      * 类型 id
@@ -68,9 +49,19 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     private Integer typeId;
 
     /**
-     * 周边状态（0：正常 1：异常 2：下架）
+     * 用户角色
      */
-    private Integer derivativeState;
+    private Integer userRole;
+
+    /**
+     * 用户状态
+     */
+    private Integer userState;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 
     private static final long serialVersionUID = 1L;
 }

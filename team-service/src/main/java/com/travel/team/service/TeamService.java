@@ -3,7 +3,7 @@ package com.travel.team.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.team.model.dto.team.TeamQueryRequest;
 import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;

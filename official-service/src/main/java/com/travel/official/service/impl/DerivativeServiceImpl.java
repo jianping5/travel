@@ -7,8 +7,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
+import com.travel.common.model.dto.reward.ConsumeRecordAddRequest;
+import com.travel.common.model.dto.reward.ExchangeRecordAddRequest;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
@@ -27,8 +30,8 @@ import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -248,32 +251,50 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         officialQueryWrapper.select("id", "user_id", "official_name", "contact");
         Official official = officialService.getOne(officialQueryWrapper);
 
-
         // 增加该周边的获取次数
         UpdateWrapper<Derivative> derivativeUpdateWrapper = new UpdateWrapper<>();
         derivativeUpdateWrapper.eq("id", id);
         derivativeUpdateWrapper.setSql("obtain_count = obtain_count + 1");
 
+        // 获取周边价格
+        double price = derivative.getPrice();
+
+        String exchangeName = "travel.topic";
 
         // 现金获取
         if (obtainMethod == 0) {
+            // todo：并记录当前用户的行为到用户行为表中（暂时不需要）
 
 
-            // todo：减少周边总量
-
-
-            // todo：并记录当前用户的行为到用户行为表中
-
+            // todo：将消费记录添加到兑换记录表中，并生成唯一凭证
+            ConsumeRecordAddRequest consumeRecordAddRequest = new ConsumeRecordAddRequest();
+            consumeRecordAddRequest.setUserId(loginUserId);
+            // todo：此处消耗的是现金（就不保存了）
+            consumeRecordAddRequest.setTokenAccount(0);
+            consumeRecordAddRequest.setContent("您使用现金购买了周边");
+            consumeRecordAddRequest.setConsumeType(TypeConstant.DERIVATIVE.getTypeIndex());
+            consumeRecordAddRequest.setConsumeId(id);
+            rabbitTemplate.convertAndSend(exchangeName, "consume.derivative", consumeRecordAddRequest);
 
         }
+
+        // 获取周边代币
+        int token = (int) price;
 
         // 代币兑换
         if (obtainMethod == 1) {
             // todo：消耗代币，并判断是否足够
+            innerUserService.updateToken(loginUserId, token, false);
 
             // todo：将兑换记录添加到兑换记录表中，并生成唯一凭证
-
-            // todo：记录当前用户的行为到用户行为表中
+            ExchangeRecordAddRequest exchangeRecordAddRequest = new ExchangeRecordAddRequest();
+            exchangeRecordAddRequest.setDerivativeId(id);
+            exchangeRecordAddRequest.setTokenAccount(token);
+            exchangeRecordAddRequest.setUserId(loginUserId);
+            String certificate = DigestUtils.md5DigestAsHex(("derivative").getBytes());
+            exchangeRecordAddRequest.setCertificate(certificate);
+            rabbitTemplate.convertAndSend(exchangeName, "exchange.derivative", exchangeRecordAddRequest);
+            // todo：记录当前用户的行为到用户行为表中（暂时不需要）
 
         }
 

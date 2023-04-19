@@ -12,7 +12,7 @@ import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.dto.MessageDTO;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerTravelService;
 import com.travel.common.service.InnerUserService;
@@ -41,7 +41,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -114,14 +117,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         teamVO.setUser(userDTO);
 
-/*        // 2. 已登录，获取用户点赞、收藏状态
-        User loginUser = UserHolder.getUser();
-        if (loginUser != null) {
-            // todo: 获取点赞（从 redis 中获取）并设置到 teamVO 中
-
-
-            // todo: 获取收藏（从 redis 中获取）并设置到 teamVO 中
-        }*/
         return teamVO;
     }
 
@@ -225,17 +220,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
     @Override
     public boolean updateTeam(Team team) {
-        // 判重（团队名字）
-        String teamName = team.getTeamName();
-        QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
-        teamQueryWrapper.eq("team_name", teamName);
-        Team oldTeam = this.getOne(teamQueryWrapper);
-        ThrowUtils.throwIf(oldTeam != null, ErrorCode.OPERATION_ERROR);
+        // 查询是否存在团队
+        Long teamId = team.getId();
+        Team oldTeam = this.getById(teamId);
+        ThrowUtils.throwIf(oldTeam == null, ErrorCode.NOT_FOUND_ERROR);
 
         // 判断当前用户是否为当前团队的创始人
         User loginUser = UserHolder.getUser();
         Long loginUserId = loginUser.getId();
-        Long teamUserId = team.getUserId();
+        Long teamUserId = oldTeam.getUserId();
         ThrowUtils.throwIf(!loginUserId.equals(teamUserId), ErrorCode.NO_AUTH_ERROR);
 
         // 更新数据库
@@ -246,7 +239,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean changeTeam(Long userId, Long teamId, Integer joinOrQuitOrKick) {
 
         // 根据用户 id 从用户表中查询，判断用户是否已经加入该团队
@@ -304,8 +296,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             boolean updateResult = this.update(teamUpdateWrapper);
             ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
 
-            // 更换游记的团队 id（游记服务）
-            innerTravelService.updateTravelByTeamId(userId, teamId);
+            // todo：更换游记的团队 id（游记服务）异常处理？
+            try {
+                innerTravelService.updateTravelByTeamId(userId, teamId);
+            } catch (Exception e) {
+                ThrowUtils.throwIf(true, ErrorCode.OPERATION_ERROR);
+            }
 
             // todo：将该成员退出团队的消息告知团队创始人
             // 交换机名称
@@ -321,10 +317,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             messageDTO.setContent("该用户退出了您的团队（" + team.getTeamName() + "）");
 
             // todo：启动类，配置了 JSON，还需要使用 gson 序列化再加入队列中吗
-            String messageJson = gson.toJson(messageDTO);
 
             // 发送该消息
-            rabbitTemplate.convertAndSend(exchangeName, "team.quit", messageJson);
+            rabbitTemplate.convertAndSend(exchangeName, "message.team", messageDTO);
 
         }
 
@@ -352,6 +347,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
     @Override
     public List<Team> listMyTeam(Long userId) {
+        // 若未传用户 id，则默认为当前登录用户 id
+        if (userId == null) {
+            User loginUser = UserHolder.getUser();
+            userId = loginUser.getId();
+        }
+
         // 根据用户 id 获取团队 id 列表
         String teamIdStr = innerUserService.getTeamIdStr(userId);
         List<Long> teamIdList = gson.fromJson(teamIdStr, new TypeToken<List<Long>>() {
@@ -411,27 +412,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // 1. 关联查询用户信息
         Set<Long> userIdSet = teamList.stream().map(Team::getUserId).collect(Collectors.toSet());
         // 这样做的好处是将 用户 id 和其对应的信息直接对应起来，方便后续获取（而不用遍历获取）
-
-/*        // 2. 已登录，获取用户点赞、收藏状态
-        Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
-        Map<Long, Boolean> postIdHasFavourMap = new HashMap<>();
-        User loginUser = userService.getLoginUserPermitNull(request);
-        if (loginUser != null) {
-            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
-            loginUser = userService.getLoginUser(request);
-            // 获取点赞
-            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
-            postThumbQueryWrapper.in("postId", postIdSet);
-            postThumbQueryWrapper.eq("userId", loginUser.getId());
-            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
-            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
-            // 获取收藏
-            QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
-            postFavourQueryWrapper.in("postId", postIdSet);
-            postFavourQueryWrapper.eq("userId", loginUser.getId());
-            List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
-            postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
-        }*/
 
         List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
 

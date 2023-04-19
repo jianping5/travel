@@ -1,7 +1,6 @@
 package com.travel.team.model.vo;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.team.model.entity.Team;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

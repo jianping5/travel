@@ -143,4 +143,23 @@ public class TopicConfig {
         return BindingBuilder.bind(officialQueue).to(topicExchange).with("behavior.#");
     }
 
+    /**
+     * 声明标签队列
+     */
+    @Bean
+    public Queue tagQueue() {
+        return new Queue("travel.tag");
+    }
+
+    /**
+     * 绑定队列 behaviorQueue 到 topic 交换机
+     * @param tagQueue
+     * @param topicExchange
+     * @return
+     */
+    @Bean
+    public Binding bindingTagQueue(Queue tagQueue, TopicExchange topicExchange) {
+        return BindingBuilder.bind(tagQueue).to(topicExchange).with("tag.#");
+    }
+
 }

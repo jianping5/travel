@@ -7,7 +7,7 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
@@ -18,6 +18,8 @@ import com.travel.team.model.dto.team.TeamUpdateRequest;
 import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,7 @@ import java.util.List;
  * @createDate 18/3/2023 下午 9:48
  */
 @RestController
-@RequestMapping("/team")
+@Api(tags = "团队 Controller")
 public class TeamController {
 
     @DubboReference
@@ -45,6 +47,7 @@ public class TeamController {
      * @param teamAddRequest
      * @return
      */
+    @ApiOperation(value = "创建团队")
     @PostMapping("/add")
     public BaseResponse<Team> addTeam(@RequestBody TeamAddRequest teamAddRequest) {
         // 校验请求体
@@ -78,6 +81,7 @@ public class TeamController {
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "解散团队")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -101,7 +105,7 @@ public class TeamController {
         boolean result = teamService.deleteTeam(oldPost);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 
-        return ResultUtils.success(result);
+        return ResultUtils.success(true);
     }
 
     /**
@@ -110,6 +114,7 @@ public class TeamController {
      * @param teamUpdateRequest
      * @return
      */
+    @ApiOperation(value = "更新团队")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest) {
         // 校验团队更新请求体
@@ -141,6 +146,7 @@ public class TeamController {
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取团队介绍详情")
     @GetMapping("/get/vo")
     public BaseResponse<TeamVO> getTeamVOById(long id) {
         // 校验 id
@@ -156,11 +162,12 @@ public class TeamController {
     }
 
     /**
-     * 分页获取列表（封装类）
+     * 分页获取团队列表（封装类）
      *
      * @param teamQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取团队列表")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<TeamVO>> listTeamVOByPage(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
@@ -183,6 +190,7 @@ public class TeamController {
      * @param teamQueryRequest
      * @return
      */
+    @ApiOperation(value = "获取推荐团队（大众化推荐）")
     @PostMapping("/rcmd")
     public BaseResponse<List<TeamVO>> listRcmdTeamVO(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
@@ -206,6 +214,7 @@ public class TeamController {
      * @param teamQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取当前用户创建的资源列表")
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<TeamVO>> listMyTeamVOByPage(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
@@ -219,10 +228,10 @@ public class TeamController {
 
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Team> postPage = teamService.page(new Page<>(current, size),
+        Page<Team> teamPage = teamService.page(new Page<>(current, size),
                 teamService.getQueryWrapper(teamQueryRequest));
 
-        return ResultUtils.success(teamService.getTeamVOPage(postPage));
+        return ResultUtils.success(teamService.getTeamVOPage(teamPage));
     }
 
     /**
@@ -231,6 +240,7 @@ public class TeamController {
      * @param teamQueryRequest
      * @return
      */
+    @ApiOperation(value = "获取指定用户加入的团队列表")
     @PostMapping("/join/list")
     public BaseResponse<List<Team>> listMyTeam(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
@@ -248,6 +258,7 @@ public class TeamController {
      * @param teamChangeRequest
      * @return
      */
+    @ApiOperation(value = "更换团队（加入团队、退出团队、踢出成员）")
     @PostMapping("/change")
     public BaseResponse<Boolean> changeTeam(@RequestBody TeamChangeRequest teamChangeRequest) {
         // 校验请求体
@@ -265,6 +276,7 @@ public class TeamController {
         Long userId = teamChangeRequest.getUserId();
         if (userId != null) {
             teamService.changeTeam(userId, teamId, joinOrQuitOrKick);
+            return ResultUtils.success(true);
         }
 
         // 当前登录用户进行更换团队
@@ -275,6 +287,12 @@ public class TeamController {
         return ResultUtils.success(true);
     }
 
+    /**
+     * 查询团队所有成员
+     * @param teamId
+     * @return
+     */
+    @ApiOperation(value = "查询团队所有成员")
     @GetMapping("/member/{teamId}")
     public BaseResponse<List<UserDTO>> listTeamMember(@PathVariable Long teamId) {
         // 校验参数

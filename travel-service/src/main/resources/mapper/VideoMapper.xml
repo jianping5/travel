@@ -32,4 +32,9 @@
         favorite_count,view_count,video_state,
         create_time,update_time
     </sql>
+    <select id="listVideoWithDelete" resultType="com.travel.travel.model.entity.Video">
+        select <include refid="Base_Column_List"/>
+        from video
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>

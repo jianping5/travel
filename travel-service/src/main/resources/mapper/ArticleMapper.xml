@@ -31,4 +31,9 @@
         view_count,article_state,create_time,
         update_time
     </sql>
+    <select id="listArticleWithDelete" resultType="com.travel.travel.model.entity.Article">
+        select <include refid="Base_Column_List"/>
+        from article
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>

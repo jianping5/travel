@@ -1,6 +1,5 @@
 package com.travel.team.controller;
 
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.common.BaseResponse;
 import com.travel.common.common.ErrorCode;
@@ -12,6 +11,8 @@ import com.travel.team.model.dto.teamApply.TeamApplyUpdateRequest;
 import com.travel.team.model.entity.TeamApply;
 import com.travel.team.model.vo.TeamApplyVO;
 import com.travel.team.service.TeamApplyService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +25,9 @@ import javax.annotation.Resource;
  * @author jianping5
  * @createDate 27/3/2023 下午 7:24
  */
+@Api(tags = "团队申请 Controller")
 @RestController
-@RequestMapping("/team-apply")
+@RequestMapping("/apply")
 public class TeamApplyController {
 
     @Resource
@@ -37,6 +39,7 @@ public class TeamApplyController {
      * @param teamApplyUpdateRequest
      * @return
      */
+    @ApiOperation("审批加入")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateTeamApply(@RequestBody TeamApplyUpdateRequest teamApplyUpdateRequest) {
         // 校验团队申请更新请求体
@@ -44,7 +47,7 @@ public class TeamApplyController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 将团队申请更新请求体的内容赋值给 团队
+        // 将团队申请更新请求体的内容赋值给 团队申请
         TeamApply teamApply = new TeamApply();
         BeanUtils.copyProperties(teamApplyUpdateRequest, teamApply);
 
@@ -56,12 +59,7 @@ public class TeamApplyController {
         TeamApply oldTeamApply = teamApplyService.getById(id);
         ThrowUtils.throwIf(oldTeamApply == null, ErrorCode.NOT_FOUND_ERROR);
 
-        // 更新团队申请状态
-        Integer auditState = teamApply.getAuditState();
-        UpdateWrapper<TeamApply> teamApplyUpdateWrapper = new UpdateWrapper<>();
-        teamApplyUpdateWrapper.set("audit_state", auditState);
-        boolean update = teamApplyService.update(teamApplyUpdateWrapper);
-        ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
+        teamApplyService.updateTeamApply(teamApply);
 
         return ResultUtils.success(true);
     }
@@ -72,6 +70,7 @@ public class TeamApplyController {
      * @param teamApplyQueryRequest
      * @return
      */
+    @ApiOperation("分页获取申请列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<TeamApplyVO>> listTeamApplyVOByPage(@RequestBody TeamApplyQueryRequest teamApplyQueryRequest) {
         if (teamApplyQueryRequest == null) {

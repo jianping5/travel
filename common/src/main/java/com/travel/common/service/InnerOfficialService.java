@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.model.dto.official.OfficialQueryRequest;
 import com.travel.common.model.vo.OfficialVDTO;
 
+import java.util.List;
+
 /**
  * @author jianping5
  * @createDate 22/3/2023 下午 8:58
@@ -24,5 +26,10 @@ public interface InnerOfficialService extends InnerRcmdService<OfficialVDTO> {
      */
     Page<OfficialVDTO> searchRcmdFromEs(OfficialQueryRequest officialQueryRequest);
 
-
+    /**
+     * 根据用户 id 获取 [周边 id 列表]
+     * @param userId
+     * @return
+     */
+    List<Long> listDerivativeId(Long userId);
 }

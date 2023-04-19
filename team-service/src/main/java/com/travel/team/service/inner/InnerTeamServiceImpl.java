@@ -110,15 +110,18 @@ public class InnerTeamServiceImpl implements InnerTeamService {
             searchHitList.stream().forEach(searchHit ->
                     teamIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("teamName").get(0)));
 
-            // todo：注意 sortField 若为 all，则表示综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
             teamQueryWrapper.in("id", teamIdNameMap.keySet());
-            teamQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            // todo：注意 sortField 若为 all，则表示综合排序
+            if ("all".equals(sortField)) {
+                teamQueryWrapper.last("order by 5*travel_count+3*news_count desc");
+            } else {
+                teamQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            }
+            
             List<Team> teamList = teamMapper.selectList(teamQueryWrapper);
 
-
-            // List<Team> teamList = teamMapper.selectBatchIds(teamIdNameMap.keySet());
             if (teamList != null) {
                 // 将数据库中的团队列表 -> （团队 id，团队列表）
                 Map<Long, List<Team>> idTeamMap = teamList.stream().collect(Collectors.groupingBy(Team::getId));
@@ -149,9 +152,17 @@ public class InnerTeamServiceImpl implements InnerTeamService {
     @Override
     public Page<TeamVDTO> listPersonalRcmd(Set<Long> idList, long pageNum, long pageSize) {
         // todo：查询个性化推荐实体列表
+        // 先根据行为对象 id 列表查询对应的用户集
         QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+        teamQueryWrapper.select("user_id");
         teamQueryWrapper.in("id", idList);
-        Page<Team> page = teamService.page(new Page<>(pageNum, pageSize), teamQueryWrapper);
+        Set<Long> userIdSet = teamService.list(teamQueryWrapper).stream().map(team -> team.getUserId()).collect(Collectors.toSet());
+
+        // 根据用户集查询这些用户最近发布的团队
+        QueryWrapper<Team> newTeamQueryWrapper = new QueryWrapper<>();
+        newTeamQueryWrapper.in("user_id", userIdSet);
+        newTeamQueryWrapper.orderByDesc("create_time");
+        Page<Team> page = teamService.page(new Page<>(pageNum, pageSize), newTeamQueryWrapper);
 
         return objPageToVdtoPage(page);
     }

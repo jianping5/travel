@@ -3,6 +3,7 @@ package com.travel.common.constant;
 /**
  * 文件常量
  *
+ * @author jianping5
  */
 public interface FileConstant {
 

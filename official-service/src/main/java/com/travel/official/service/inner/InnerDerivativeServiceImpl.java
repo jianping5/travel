@@ -110,7 +110,11 @@ public class InnerDerivativeServiceImpl implements InnerDerivativeService {
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Derivative> derivativeQueryWrapper = new QueryWrapper<>();
             derivativeQueryWrapper.in("id", derivativeIdNameMap.keySet());
-            derivativeQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            if ("all".equals(sortField)) {
+                derivativeQueryWrapper.last("order by 5*obtain_count+3*view_count desc");
+            } else {
+                derivativeQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            }
             List<Derivative> derivativeList = derivativeMapper.selectList(derivativeQueryWrapper);
 
             if (derivativeList != null) {

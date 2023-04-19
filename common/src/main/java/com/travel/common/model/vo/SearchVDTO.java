@@ -30,6 +30,21 @@ public class SearchVDTO implements Serializable {
     private Page<DerivativeVDTO> derivativeVDTOPage;
 
     /**
+     * 用户视图体 page
+     */
+    private Page<UserVDTO> userVDTOPage;
+
+    /**
+     * 文章游记试视图体
+     */
+    private Page<ArticleVDTO> articleVDTOPage;
+
+    /**
+     * 视频游记视图体
+     */
+    private Page<VideoVDTO> videoVDTOPage;
+
+    /**
      * 通用视图体 page
      */
     private Page<?> dataPage;

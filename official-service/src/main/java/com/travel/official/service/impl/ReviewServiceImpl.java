@@ -5,9 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
@@ -20,6 +21,8 @@ import com.travel.official.service.ReviewService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -39,6 +42,9 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
 
     @Resource
     private InnerUserService innerUserService;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public void validReview(Review review, boolean add) {
@@ -138,6 +144,10 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
         // 将用户 id 和用户对应起来
         Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
 
+        // 若已登录，点赞状态
+        User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+
         // 填充信息
         List<ReviewVO> reviewVOList = reviewList.stream().map(review -> {
             // 获取官方资源视图体
@@ -150,6 +160,15 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
                 userDTO = userIdUserListMap.get(userId).get(0);
             }
             reviewVO.setUser(userDTO);
+
+            // 是否点赞
+            String reviewLike = String.format("travel:official:like:%d:%d", TypeConstant.REVIEW.getTypeIndex(), review.getId());
+            RSet<Long> reviewLikeSet = redissonClient.getSet(reviewLike);
+            if (reviewLikeSet.contains(loginUserId)) {
+                reviewVO.setIsLiked(1);
+            } else {
+                reviewVO.setIsLiked(0);
+            }
 
             return reviewVO;
         }).collect(Collectors.toList());

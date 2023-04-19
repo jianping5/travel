@@ -4,29 +4,30 @@ package com.travel.user.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.travel.common.common.BaseResponse;
-import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
-import com.travel.common.exception.ThrowUtils;
 import com.travel.common.service.InnerTeamService;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
-import com.travel.user.model.request.*;
+import com.travel.user.model.request.CodeCheckRequest;
+import com.travel.user.model.request.CodeSendRequest;
+import com.travel.user.model.request.LoginRequest;
+import com.travel.user.model.request.RegisterRequest;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.FormatValidator;
 import com.travel.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.elasticsearch.search.aggregations.pipeline.Derivative;
-import org.redisson.api.*;
-import org.springframework.beans.BeanUtils;
+import org.redisson.api.RBucket;
+import org.redisson.api.RMap;
+import org.redisson.api.RSetCache;
+import org.redisson.api.RedissonClient;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -43,7 +44,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RestController
-@RequestMapping("/user")
 public class UserController {
 
     @Resource()
@@ -136,10 +136,10 @@ public class UserController {
                     String registerCode = UUID.fastUUID().toString(true);
                     RSetCache<String> setCache = redissonClient.getSetCache("travel:user:register-code");
                     setCache.add(registerCode,900,TimeUnit.SECONDS);
-                    return ResultUtils.success(registerCode,"验证通过");
+                    return ResultUtils.success(registerCode);
                 }
                 //todo：其余用途的验证码校验
-                return ResultUtils.success(null,"验证通过");
+                return ResultUtils.success(null);
             }else {
                 return ResultUtils.error(null,"验证码错误");
             }
@@ -210,7 +210,7 @@ public class UserController {
                 CopyOptions.create()
                         .setIgnoreProperties("createTime", "updateTime", "userInfo")
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
-        RMap<String, Object> map = redissonClient.getMap("user_login: " + token);
+        RMap<String, Object> map = redissonClient.getMap("user_login:" + token);
         map.putAll(userMap);
         map.expire(Duration.ofSeconds(2592000));
 
@@ -233,7 +233,7 @@ public class UserController {
                 CopyOptions.create()
                         .setIgnoreProperties("createTime", "updateTime", "userInfo")
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
-        RMap<String, Object> map = redissonClient.getMap("user_login: " + token);
+        RMap<String, Object> map = redissonClient.getMap("user_login:" + token);
         map.putAll(userMap);
         map.expire(Duration.ofSeconds(2592000));
 
@@ -251,7 +251,7 @@ public class UserController {
         log.info("token logout: " + token);
 
         // 删除当前用户的 token
-        RBucket<String> bucket = redissonClient.getBucket("user_login: " + token);
+        RBucket<String> bucket = redissonClient.getBucket("user_login:" + token);
         if (bucket != null) {
             bucket.delete();
         }

@@ -1,6 +1,6 @@
 package com.travel.official.model.vo;
 
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.official.model.entity.OfficialResource;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -79,6 +79,11 @@ public class OfficialResourceVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 是否点赞
+     */
+    private Integer isLiked;
 
     /**
      * 创始人信息

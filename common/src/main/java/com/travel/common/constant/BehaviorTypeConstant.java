@@ -15,37 +15,42 @@ public enum BehaviorTypeConstant {
     /**
      * 取消点赞
      */
-    DISLIKE(0, "dislike"),
+    DISLIKE(1, "dislike"),
 
     /**
      * 评论
      */
-    COMMENT(8, "comment"),
+    COMMENT(2, "comment"),
 
     /**
      * 收藏
      */
-    FAVORITE(8, "favorite"),
+    FAVORITE(3, "favorite"),
 
     /**
      * 取消收藏
      */
-    DISFAVORITE(8, "disfavorite"),
+    DISFAVORITE(4, "disfavorite"),
 
     /**
      * 点评
      */
-    REVIEW(10, "review"),
+    REVIEW(5, "review"),
 
     /**
      * 关注
      */
-    FOLLOW(11, "follow"),
+    FOLLOW(6, "follow"),
 
     /**
      * 取消关注
      */
-    DISFOLLOW(11, "disfollow");
+    DISFOLLOW(7, "disfollow"),
+
+    /**
+     * 浏览
+     */
+    VIEW(8, "view");
 
     private Integer typeIndex;
 
@@ -70,11 +75,11 @@ public enum BehaviorTypeConstant {
      * @param value
      * @return
      */
-    public static TypeConstant getEnumByValue(String value) {
+    public static BehaviorTypeConstant getEnumByValue(String value) {
         if (ObjectUtils.isEmpty(value)) {
             return null;
         }
-        for (TypeConstant anEnum : TypeConstant.values()) {
+        for (BehaviorTypeConstant anEnum : BehaviorTypeConstant.values()) {
             if (anEnum.getTypeName().equals(value)) {
                 return anEnum;
             }
@@ -88,8 +93,8 @@ public enum BehaviorTypeConstant {
     翻新eturn
      */
     public static boolean containsKey(Integer typeIndex) {
-        for (TypeConstant typeConstant : TypeConstant.values()) {
-            if (typeConstant.getTypeIndex().equals(typeIndex)) {
+        for (BehaviorTypeConstant behaviorTypeConstant : BehaviorTypeConstant.values()) {
+            if (behaviorTypeConstant.getTypeIndex().equals(typeIndex)) {
                 return true;
             }
         }

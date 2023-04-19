@@ -1,9 +1,7 @@
 package com.travel.data.registry;
 
 import com.travel.common.constant.TypeConstant;
-import com.travel.common.service.InnerOfficialService;
-import com.travel.common.service.InnerRcmdService;
-import com.travel.common.service.InnerTeamService;
+import com.travel.common.service.*;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Component;
@@ -25,6 +23,12 @@ public class ServiceRegistry {
     @DubboReference
     private InnerTeamService innerTeamService;
 
+    @DubboReference
+    private InnerArticleService innerArticleService;
+
+    @DubboReference
+    private InnerVideoService innerVideoService;
+
     private Map<Integer, InnerRcmdService<T>> typeServiceMap;
 
     @PostConstruct
@@ -32,6 +36,8 @@ public class ServiceRegistry {
         typeServiceMap = new HashMap(20) {{
             put(TypeConstant.OFFICIAL.getTypeIndex(), innerOfficialService);
             put(TypeConstant.TEAM.getTypeIndex(), innerTeamService);
+            put(TypeConstant.ARTICLE.getTypeIndex(), innerArticleService);
+            put(TypeConstant.VIDEO.getTypeIndex(), innerVideoService);
         }};
     }
 

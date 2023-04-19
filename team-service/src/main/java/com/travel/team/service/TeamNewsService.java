@@ -47,7 +47,7 @@ public interface TeamNewsService extends IService<TeamNews> {
      * @param teamNews
      * @return
      */
-    boolean addTeamNews(TeamNews teamNews);
+    TeamNews addTeamNews(TeamNews teamNews);
 
 
     /**

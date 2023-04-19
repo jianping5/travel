@@ -31,4 +31,9 @@
         view_count,follow_count,create_time,
         update_time
     </sql>
+    <select id="listUserWithDelete" resultType="com.travel.user.model.entity.UserInfo">
+        select <include refid="Base_Column_List"/>
+        from user_info
+        where update_time >= #{minUpdateTime}
+    </select>
 </mapper>

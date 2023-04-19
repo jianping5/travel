@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.travel.common.common.ErrorCode;
+import com.travel.common.constant.BehaviorTypeConstant;
 import com.travel.common.constant.CommonConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.TagAddRequest;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
@@ -100,6 +103,14 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         boolean addResult = officialDetailService.addOfficialDetail(officialDetail);
         ThrowUtils.throwIf(!addResult, ErrorCode.OPERATION_ERROR);
 
+        // 添加标签（消息队列）
+        TagAddRequest tagAddRequest = new TagAddRequest();
+        tagAddRequest.setTagList(official.getTag());
+        tagAddRequest.setTagType(TypeConstant.OFFICIAL.getTypeIndex());
+        String exchangeName = "travel.topic";
+        // todo：如何确保消息正确地被消费？
+        rabbitTemplate.convertAndSend(exchangeName, "tag.official", tagAddRequest);
+
         return official.getId();
     }
 
@@ -170,7 +181,24 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         officialVO.setOfficialDetailId(officialDetail.getId());
         officialVO.setDetail(officialDetail.getDetail());
 
-        // todo：将当前用户查看当前官方详情加入用户行为记录表（消息队列）
+        // 若已登录，点赞
+        User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+        // 是否点赞
+        String officialLike = String.format("travel:official:like:%d:%d", TypeConstant.OFFICIAL.getTypeIndex(), official.getId());
+        RSet<Long> officialLikeSet = redissonClient.getSet(officialLike);
+        if (officialLikeSet.contains(loginUserId)) {
+            officialVO.setIsLiked(1);
+        } else {
+            officialVO.setIsLiked(0);
+        }
+
+        // 将当前用户查看当前官方详情加入用户行为记录表（消息队列）
+        String exchangeName = "travel.topic";
+        // 定义用户行为消息
+        String behaviorMessage = loginUserId + " " + TypeConstant.OFFICIAL.getTypeIndex() + " " + official.getId() + " " + BehaviorTypeConstant.LIKE.getTypeName();
+        // 发送消息
+        rabbitTemplate.convertAndSend(exchangeName, "behavior.official.view", behaviorMessage);
 
 
         return officialVO;
@@ -276,6 +304,7 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         // 获取 map（官方 id，官方详情 List）
         Set<Long> officialIdSet = officialList.stream().map(official -> official.getId()).collect(Collectors.toSet());
         QueryWrapper<OfficialDetail> officialDetailQueryWrapper = new QueryWrapper<>();
+        officialDetailQueryWrapper.select("id", "official_id");
         officialDetailQueryWrapper.in("official_id", officialIdSet);
         List<OfficialDetail> officialDetailList = officialDetailService.list(officialDetailQueryWrapper);
         Map<Long, List<OfficialDetail>> officialIdDetailListMap = officialDetailList.stream().collect(Collectors.groupingBy(OfficialDetail::getOfficialId));
@@ -321,6 +350,7 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         // 定义交换机名称
         String exchangeName = "travel.topic";
         String message = null;
+        String behaviorMessage = null;
 
         // 分布式锁保证同一时间同一文章只有一个线程可以对其进行点赞/取消点赞操作
         try {
@@ -333,7 +363,8 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
                     // 将对应实体类型的点赞量 +1，并添加用户的点赞记录到点赞表中（消息队列）
                     // 定义消息
                     message = loginUserId + " " + type + " " + id + " " + status;
-
+                    // 定义用户行为消息
+                    behaviorMessage = loginUserId + " " + type + " " + id + " " + BehaviorTypeConstant.LIKE.getTypeName();
                 }
 
                 // 取消点赞
@@ -344,10 +375,16 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
                     // 将对应实体类型的点赞量 -1，并删除用户的点赞记录（消息队列）
                     // 定义消息
                     message = loginUserId + " " + type + " " + id + " " + status;
+                    // 定义用户行为消息
+                    behaviorMessage = loginUserId + " " + type + " " + id + " " + BehaviorTypeConstant.DISLIKE.getTypeName();
                 }
 
                 // 发送消息，让对应线程将数据写入数据库
                 rabbitTemplate.convertAndSend(exchangeName, "cache.official.like", message);
+
+                // 发送消息，添加用户行为记录
+                rabbitTemplate.convertAndSend(exchangeName, "behavior.official.like", behaviorMessage);
+
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -362,6 +399,8 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         return true;
     }
 }
+
+
 
 
 

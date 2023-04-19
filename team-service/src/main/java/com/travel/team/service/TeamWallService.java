@@ -2,12 +2,9 @@ package com.travel.team.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.travel.team.model.dto.team.TeamQueryRequest;
-import com.travel.team.model.dto.wall.TeamWallQueryRequest;
-import com.travel.team.model.entity.Team;
-import com.travel.team.model.entity.TeamWall;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.travel.team.model.vo.TeamVO;
+import com.travel.team.model.dto.wall.TeamWallQueryRequest;
+import com.travel.team.model.entity.TeamWall;
 import com.travel.team.model.vo.TeamWallVO;
 
 /**
@@ -50,7 +47,7 @@ public interface TeamWallService extends IService<TeamWall> {
      * @param teamWall
      * @return
      */
-    boolean addTeamWall(TeamWall teamWall);
+    TeamWall addTeamWall(TeamWall teamWall);
 
 
     /**

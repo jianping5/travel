@@ -25,7 +25,7 @@ import javax.annotation.Resource;
  * @createDate 6/4/2023 下午 3:43
  */
 @RestController
-@RequestMapping("/official-notification")
+@RequestMapping("/notification")
 public class NotificationController {
     @Resource
     private NotificationService notificationService;

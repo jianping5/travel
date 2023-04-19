@@ -7,24 +7,22 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
+import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
-import com.travel.team.model.dto.wall.TeamWallQueryRequest;
-import com.travel.team.model.entity.TeamNews;
-import com.travel.team.model.entity.TeamWall;
-import com.travel.team.model.vo.TeamNewsVO;
-import com.travel.team.model.vo.TeamWallVO;
-import com.travel.team.service.TeamService;
-import com.travel.team.service.TeamWallService;
+import com.travel.common.utils.UserHolder;
 import com.travel.team.mapper.TeamWallMapper;
+import com.travel.team.model.dto.wall.TeamWallQueryRequest;
+import com.travel.team.model.entity.TeamWall;
+import com.travel.team.model.vo.TeamWallVO;
+import com.travel.team.service.TeamWallService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -127,17 +125,21 @@ public class TeamWallServiceImpl extends ServiceImpl<TeamWallMapper, TeamWall>
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(teamId), "team_id", teamId);
-        queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
     }
 
     @Override
-    public boolean addTeamWall(TeamWall teamWall) {
+    public TeamWall addTeamWall(TeamWall teamWall) {
+        User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+        teamWall.setUserId(loginUserId);
         boolean result = this.save(teamWall);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return true;
+
+        // 返回添加的团队墙
+        return this.getById(teamWall.getId());
     }
 
     @Override

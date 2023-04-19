@@ -13,7 +13,7 @@ import java.io.Serializable;
 public class PersonalRcmdRequest extends PageRequest implements Serializable {
 
     /**
-     * 推荐类型（团队、游记、景区）
+     * 推荐类型（团队、景区、文章游记、视频游记）
      */
     private Integer rcmdType;
 

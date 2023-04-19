@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.google.gson.Gson;
-import com.travel.common.constant.BehaviorTypeConstant;
 import com.travel.common.service.InnerDataService;
 import com.travel.common.service.InnerUserService;
 import com.travel.official.model.entity.Derivative;
@@ -52,7 +51,7 @@ public class UpdateCache {
     @Resource
     private OfficialResourceService officialResourceService;
 
-    @Resource
+    @DubboReference
     private InnerDataService innerDataService;
 
     @Resource
@@ -184,15 +183,9 @@ public class UpdateCache {
         // 点赞
         if (status == 0) {
             updateWrapper.setSql("like_count = like_count + 1");
-
-            // 将点赞加入用户行为记录中
-            innerDataService.addBehavior(loginUserId, type, id, BehaviorTypeConstant.DISLIKE);
         } else if (status == 1) {
             // 取消点赞
             updateWrapper.setSql("like_count = like_count - 1");
-
-            // 将取消点赞加入用户行为记录中
-            innerDataService.addBehavior(loginUserId, type, id, BehaviorTypeConstant.LIKE);
         }
 
         // 执行

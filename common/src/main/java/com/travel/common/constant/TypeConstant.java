@@ -68,9 +68,9 @@ public enum TypeConstant {
      */
     FOLLOW(11, "follow");
 
-    private Integer typeIndex;
+    private final Integer typeIndex;
 
-    private String typeName;
+    private final String typeName;
 
     TypeConstant(Integer typeIndex, String typeName) {
         this.typeIndex = typeIndex;

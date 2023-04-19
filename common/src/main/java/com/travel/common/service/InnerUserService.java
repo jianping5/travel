@@ -1,6 +1,9 @@
 package com.travel.common.service;
 
-import com.travel.common.model.dto.UserDTO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.travel.common.model.dto.user.UserDTO;
+import com.travel.common.model.dto.user.UserQueryRequest;
+import com.travel.common.model.vo.UserVDTO;
 
 import java.util.List;
 import java.util.Set;
@@ -43,12 +46,12 @@ public interface InnerUserService {
 
     /**
      * 更改团队（0：加入团队 1：退出团队 2：踢出团队）
-     * @param loginUserId
+     * @param userId
      * @param teamId
      * @param joinOrQuitOrKick
      * @return
      */
-    boolean changeTeam(Long loginUserId, Long teamId, Integer joinOrQuitOrKick);
+    boolean changeTeam(Long userId, Long teamId, Integer joinOrQuitOrKick);
 
     /**
      * 根据用户 id 获取团队 id 列表（json 字符串）
@@ -73,5 +76,21 @@ public interface InnerUserService {
      * @return
      */
     List<UserDTO> listUserByTeamId(Long teamId);
+
+    /**
+     * 从 ES 中搜索分页的数据
+     * @param userQueryRequest
+     * @return
+     */
+    Page<UserVDTO> searchFromEs(UserQueryRequest userQueryRequest);
+
+    /**
+     * 消耗代币
+     * @param userId
+     * @param token
+     * @param isAdd
+     * @return
+     */
+    boolean updateToken(Long userId, Integer token, boolean isAdd);
 
 }

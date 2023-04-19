@@ -1,13 +1,12 @@
 package com.travel.team.model.vo;
 
-import com.travel.common.model.dto.UserDTO;
-import com.travel.team.model.entity.Team;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.team.model.entity.TeamNews;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author jianping5
@@ -49,12 +48,12 @@ public class TeamNewsVO implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
     private static final long serialVersionUID = 1L;
 

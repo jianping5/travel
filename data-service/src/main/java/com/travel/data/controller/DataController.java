@@ -5,8 +5,10 @@ import com.travel.common.common.BaseResponse;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
+import com.travel.common.model.dto.travel.TravelRcmdRequest;
 import com.travel.common.model.vo.OfficialVDTO;
 import com.travel.common.model.vo.SearchVDTO;
+import com.travel.common.service.InnerTravelService;
 import com.travel.data.datasource.OfficialDataSource;
 import com.travel.data.model.dto.OfficialRcmdRequest;
 import com.travel.data.model.dto.PersonalRcmdRequest;
@@ -32,6 +34,9 @@ public class DataController {
     @Resource
     private OfficialDataSource officialDataSource;
 
+    @Resource
+    private InnerTravelService innerTravelService;
+
     @PostMapping("/personal/rcmd")
     private BaseResponse<SearchVDTO> listPersonalRcmd(@RequestBody PersonalRcmdRequest personalRcmdRequest) {
         if (personalRcmdRequest == null) {
@@ -47,4 +52,17 @@ public class DataController {
         }
         return ResultUtils.success(officialDataSource.doRcmd(officialRcmdRequest));
     }
+
+    @PostMapping("/travel/rcmd")
+    private BaseResponse<SearchVDTO> listTravelRcmd(@RequestBody TravelRcmdRequest travelRcmdRequest) {
+        if (travelRcmdRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        SearchVDTO searchVDTO = innerTravelService.listTravelRcmd(travelRcmdRequest);
+
+        // todo：游记
+        return ResultUtils.success(searchVDTO);
+    }
+
 }

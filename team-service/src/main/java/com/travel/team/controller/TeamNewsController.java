@@ -12,30 +12,24 @@ import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
 import com.travel.team.model.dto.news.TeamNewsAddRequest;
 import com.travel.team.model.dto.news.TeamNewsQueryRequest;
-import com.travel.team.model.dto.news.TeamNewsUpdateRequest;
-import com.travel.team.model.dto.team.TeamAddRequest;
-import com.travel.team.model.dto.team.TeamQueryRequest;
-import com.travel.team.model.dto.team.TeamUpdateRequest;
-import com.travel.team.model.entity.Team;
 import com.travel.team.model.entity.TeamNews;
 import com.travel.team.model.vo.TeamNewsVO;
-import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamNewsService;
-import com.travel.team.service.TeamService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author jianping5
  * @createDate 27/3/2023 下午 7:24
  */
+@Api(tags = "团队动态 Controller")
 @RestController
-@RequestMapping("/team-news")
+@RequestMapping("/news")
 public class TeamNewsController {
 
     @DubboReference
@@ -47,11 +41,12 @@ public class TeamNewsController {
     // region 增删改查
 
     /**
-     * 创建
+     * 发布团队动态
      *
      * @param teamNewsAddRequest
      * @return
      */
+    @ApiOperation(value = "发布团队动态")
     @PostMapping("/add")
     public BaseResponse<TeamNews> addTeamNews(@RequestBody TeamNewsAddRequest teamNewsAddRequest) {
         // 校验请求体
@@ -66,18 +61,17 @@ public class TeamNewsController {
         // 校验 teamNews 信息是否合法
         teamNewsService.validTeamNews(teamNews, true);
 
-        // 添加到团队中
-        teamNewsService.addTeamNews(teamNews);
-
-        return ResultUtils.success(teamNews);
+        // 添加到团队中，并返回
+        return ResultUtils.success(teamNewsService.addTeamNews(teamNews));
     }
 
     /**
-     * 删除
+     * 删除团队动态
      *
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "删除团队动态")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteTeamNews(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -104,11 +98,12 @@ public class TeamNewsController {
     }
 
     /**
-     * 根据 id 获取
+     * 根据 id 获取团队动态
      *
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取团队动态")
     @GetMapping("/get/vo")
     public BaseResponse<TeamNewsVO> getTeamNewsVOById(long id) {
         // 校验 id
@@ -129,8 +124,9 @@ public class TeamNewsController {
      * @param teamNewsQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<TeamNewsVO>> listTeamVOByPage(@RequestBody TeamNewsQueryRequest teamNewsQueryRequest) {
+    public BaseResponse<Page<TeamNewsVO>> listTeamNewsVOByPage(@RequestBody TeamNewsQueryRequest teamNewsQueryRequest) {
         long current = teamNewsQueryRequest.getCurrent();
         long size = teamNewsQueryRequest.getPageSize();
         // 限制爬虫
@@ -146,8 +142,9 @@ public class TeamNewsController {
      * @param teamNewsQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取当前用户创建的资源列表")
     @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<TeamNewsVO>> listMyTeamVOByPage(@RequestBody TeamNewsQueryRequest teamNewsQueryRequest) {
+    public BaseResponse<Page<TeamNewsVO>> listMyTeamNewsVOByPage(@RequestBody TeamNewsQueryRequest teamNewsQueryRequest) {
         //
         if (teamNewsQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

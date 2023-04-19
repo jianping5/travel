@@ -5,9 +5,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
@@ -22,6 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,6 +47,9 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
 
     @DubboReference
     private InnerUserService innerUserService;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public void validOfficialResource(OfficialResource officialResource, boolean add) {
@@ -212,9 +218,23 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         Long resourceDetailId = officialResource.getResourceDetailId();
         // 获取官方详情
         ResourceDetail resourceDetail = resourceDetailService.getById(resourceDetailId);
+
         // 注入到官方详情视图体中
         officialResourceVO.setResourceDetailId(resourceDetail.getId());
         officialResourceVO.setDetail(resourceDetail.getDetail());
+
+        // 若已登录，点赞状态
+        User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+
+        // 是否点赞
+        String officialResourceLike = String.format("travel:official:like:%d:%d", TypeConstant.OFFICIAL_RESOURCE.getTypeIndex(), officialResource.getId());
+        RSet<Long> officialResourceLikeSet = redissonClient.getSet(officialResourceLike);
+        if (officialResourceLikeSet.contains(loginUserId)) {
+            officialResourceVO.setIsLiked(1);
+        } else {
+            officialResourceVO.setIsLiked(0);
+        }
 
         return officialResourceVO;
     }

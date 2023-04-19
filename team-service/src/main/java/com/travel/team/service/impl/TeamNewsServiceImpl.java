@@ -1,6 +1,5 @@
 package com.travel.team.service.impl;
 
-import ch.qos.logback.core.joran.conditional.ThenOrElseActionBase;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,18 +10,17 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
+import com.travel.team.mapper.TeamNewsMapper;
 import com.travel.team.model.dto.news.TeamNewsQueryRequest;
 import com.travel.team.model.entity.Team;
 import com.travel.team.model.entity.TeamNews;
 import com.travel.team.model.vo.TeamNewsVO;
-import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamNewsService;
-import com.travel.team.mapper.TeamNewsMapper;
 import com.travel.team.service.TeamService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -139,23 +137,25 @@ public class TeamNewsServiceImpl extends ServiceImpl<TeamNewsMapper, TeamNews>
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(teamId), "team_id", teamId);
-        queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
     }
 
     @Override
-    public boolean addTeamNews(TeamNews teamNews) {
+    public TeamNews addTeamNews(TeamNews teamNews) {
         // 判断当前用户是否在该团队内
         User loginUser = UserHolder.getUser();
         String teamIdStr = loginUser.getTeamId();
         List<Long> teamIdList = gson.fromJson(teamIdStr, new TypeToken<List<Long>>() {
         }.getType());
         Long teamId = teamNews.getTeamId();
+        // 将当前登录用户的 id 设置到 teamNews 里
+        teamNews.setUserId(loginUser.getId());
 
-        ThrowUtils.throwIf(!teamIdList.contains(String.valueOf(teamId)), ErrorCode.NO_AUTH_ERROR);
+        ThrowUtils.throwIf(!teamIdList.contains(teamId), ErrorCode.NO_AUTH_ERROR);
 
+        // 添加团队动态
         boolean saveResult = this.save(teamNews);
         ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);
 
@@ -166,7 +166,8 @@ public class TeamNewsServiceImpl extends ServiceImpl<TeamNewsMapper, TeamNews>
         boolean updateResult = teamService.update(teamUpdateWrapper);
         ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
 
-        return true;
+        // 返回添加的团队动态
+        return this.getById(teamNews.getId());
     }
 
     @Override

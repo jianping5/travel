@@ -9,8 +9,10 @@ import com.travel.common.model.dto.official.OfficialQueryRequest;
 import com.travel.common.model.vo.OfficialVDTO;
 import com.travel.common.service.InnerOfficialService;
 import com.travel.common.service.InnerUserService;
+import com.travel.official.mapper.DerivativeMapper;
 import com.travel.official.mapper.OfficialMapper;
 import com.travel.official.model.dto.official.OfficialEsDTO;
+import com.travel.official.model.entity.Derivative;
 import com.travel.official.model.entity.Official;
 import com.travel.official.model.vo.OfficialVO;
 import com.travel.official.service.OfficialService;
@@ -60,6 +62,9 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
 
     @Resource
     private Gson gson;
+
+    @Resource
+    private DerivativeMapper derivativeMapper;
 
     @Override
     public Page<OfficialVDTO> searchFromEs(OfficialQueryRequest officialQueryRequest) {
@@ -156,10 +161,12 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Official> officialQueryWrapper = new QueryWrapper<>();
             officialQueryWrapper.in("id", officialIdNameMap.keySet());
-            officialQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            if ("all".equals(sortField)) {
+                officialQueryWrapper.last("order by 5*like_count+3*favorite_count+view_count+review_count desc");
+            } else {
+                officialQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            }
             List<Official> officialList = officialMapper.selectList(officialQueryWrapper);
-
-            // List<Official> officialList = officialMapper.selectBatchIds(officialIdNameMap.keySet());
 
             if (officialList != null) {
                 // 将数据库中的团队列表 -> （团队 id，团队列表）
@@ -220,6 +227,7 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
                 .order(SortOrder.ASC)
                 .unit(DistanceUnit.KILOMETERS);
 
+        // todo：待测试
         // 构造查询（经纬度排序查询）
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(boolQueryBuilder)
                 .withPageable(pageRequest)
@@ -272,11 +280,30 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
     }
 
     @Override
+    public List<Long> listDerivativeId(Long userId) {
+        QueryWrapper<Derivative> derivativeQueryWrapper = new QueryWrapper<>();
+        derivativeQueryWrapper.eq("user_id", userId);
+        derivativeQueryWrapper.select("id");
+        List<Long> derivativeIdList = derivativeMapper.selectList(derivativeQueryWrapper).stream().map(derivative -> derivative.getId()).collect(Collectors.toList());
+
+        return derivativeIdList;
+    }
+
+    @Override
     public Page<OfficialVDTO> listPersonalRcmd(Set<Long> idList, long pageNum, long pageSize) {
         // todo：查询个性化推荐实体列表
+        // 先根据行为对象 id 列表查询对应的省份集
         QueryWrapper<Official> officialQueryWrapper = new QueryWrapper<>();
+        officialQueryWrapper.select("province");
         officialQueryWrapper.in("id", idList);
-        Page<Official> page = officialService.page(new Page<>(pageNum, pageSize), officialQueryWrapper);
+        // 类型id（景区）
+        officialQueryWrapper.eq("type_id", 1);
+        Set<String> provinceSet = officialService.list(officialQueryWrapper).stream().map(official -> official.getProvince()).collect(Collectors.toSet());
+
+        // 根据省份集查询这些用户最近发布的游记
+        QueryWrapper<Official> newOfficialQueryWrapper = new QueryWrapper<>();
+        newOfficialQueryWrapper.in("province", provinceSet);
+        Page<Official> page = officialService.page(new Page<>(pageNum, pageSize), newOfficialQueryWrapper);
 
         return objPageToVdtoPage(page);
     }

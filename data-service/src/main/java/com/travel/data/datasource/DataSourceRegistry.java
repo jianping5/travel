@@ -25,6 +25,15 @@ public class DataSourceRegistry {
     @Resource
     private DerivativeDataSource derivativeDataSource;
 
+    @Resource
+    private UserDataSource userDataSource;
+
+    @Resource
+    private ArticleDataSource articleDataSource;
+
+    @Resource
+    private VideoDataSource videoDataSource;
+
     private Map<String, DataSource<T>> typeDataSourceMap;
 
     @PostConstruct
@@ -34,6 +43,9 @@ public class DataSourceRegistry {
             put(TypeConstant.TEAM.getTypeName(), teamDataSource);
             put(TypeConstant.OFFICIAL.getTypeName(), officialDataSource);
             put(TypeConstant.DERIVATIVE.getTypeName(), derivativeDataSource);
+            put(TypeConstant.USER.getTypeName(), userDataSource);
+            put(TypeConstant.ARTICLE.getTypeName(), articleDataSource);
+            put(TypeConstant.VIDEO.getTypeName(), videoDataSource);
         }};
     }
 

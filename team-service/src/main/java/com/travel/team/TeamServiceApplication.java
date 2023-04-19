@@ -9,9 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.session.FlushMode;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * @author jianping5

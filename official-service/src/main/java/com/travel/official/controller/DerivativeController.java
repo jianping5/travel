@@ -1,6 +1,5 @@
 package com.travel.official.controller;
 
-import co.elastic.clients.elasticsearch.xpack.usage.Base;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.common.BaseResponse;
 import com.travel.common.common.DeleteRequest;
@@ -18,6 +17,7 @@ import com.travel.official.model.entity.Derivative;
 import com.travel.official.model.entity.Official;
 import com.travel.official.model.vo.DerivativeVO;
 import com.travel.official.service.DerivativeService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +29,8 @@ import java.util.List;
  * @createDate 30/3/2023 下午 5:16
  */
 @RestController
-@RequestMapping("/official-derivative")
+@RequestMapping("/derivative")
+@Api(tags = "官方周边 Controller")
 public class DerivativeController {
 
     @Resource

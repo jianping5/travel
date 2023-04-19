@@ -1,7 +1,5 @@
 package com.travel.common.common;
 
-import org.apache.poi.ss.formula.functions.T;
-
 /**
  * 返回工具类
  *
@@ -53,6 +51,6 @@ public class ResultUtils {
     }
 
     public static <T> BaseResponse<T> success(T data, String message) {
-        return new BaseResponse(data, message);
+        return new BaseResponse(0, data, message);
     }
 }

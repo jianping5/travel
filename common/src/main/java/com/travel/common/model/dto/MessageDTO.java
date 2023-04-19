@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 /**
  * 消息表
+ * @author jianping5
  * @TableName message
  */
 @Data

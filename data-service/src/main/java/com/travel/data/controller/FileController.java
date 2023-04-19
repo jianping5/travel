@@ -28,7 +28,7 @@ import java.util.Arrays;
  * @author jianping5
  */
 @RestController
-@RequestMapping("/file")
+@RequestMapping("/data-file")
 @Slf4j
 public class FileController {
 

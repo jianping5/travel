@@ -1,6 +1,6 @@
 package com.travel.official.model.vo;
 
-import com.travel.common.model.dto.UserDTO;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.official.model.entity.Official;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -114,6 +114,11 @@ public class OfficialVO implements Serializable {
      * 创始人信息
      */
     private UserDTO user;
+
+    /**
+     * 是否已点赞
+     */
+    private Integer isLiked;
 
     /**
      * 官方详情 id

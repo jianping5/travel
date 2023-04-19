@@ -25,7 +25,7 @@ import javax.annotation.Resource;
  * @createDate 3/4/2023 下午 8:10
  */
 @RestController
-@RequestMapping("/official-resource")
+@RequestMapping("/resource")
 public class OfficialResourceController {
 
     @Resource

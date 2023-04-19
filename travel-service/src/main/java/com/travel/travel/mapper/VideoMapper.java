@@ -3,6 +3,9 @@ package com.travel.travel.mapper;
 import com.travel.travel.model.entity.Video;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import java.util.Date;
+import java.util.List;
+
 /**
 * @author jianping5
 * @description 针对表【video(视频表)】的数据库操作Mapper
@@ -11,6 +14,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 public interface VideoMapper extends BaseMapper<Video> {
 
+    /**
+     * 查询某段时间的视频列表（包括已被删除的数据）
+     * @param minUpdateTime
+     * @return
+     */
+    List<Video> listVideoWithDelete(Date minUpdateTime);
 }
 
 
