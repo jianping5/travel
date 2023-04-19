@@ -2,18 +2,22 @@ package com.travel.user.service.inner;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.dto.UserDTO;
 import com.travel.common.service.InnerUserService;
+import com.travel.user.model.entity.History;
 import com.travel.user.model.entity.User;
 import com.travel.user.model.entity.UserInfo;
 import com.travel.user.model.entity.UserLike;
+import com.travel.user.service.HistoryService;
 import com.travel.user.service.UserInfoService;
 import com.travel.user.service.UserLikeService;
 import com.travel.user.service.UserService;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.BeanUtils;
 
@@ -37,6 +41,9 @@ public class InnerUserServiceImpl implements InnerUserService {
 
     @Resource
     private UserLikeService userLikeService;
+
+    @Resource
+    private HistoryService historyService;
 
     @Resource
     private Gson gson;
@@ -204,5 +211,18 @@ public class InnerUserServiceImpl implements InnerUserService {
         }).collect(Collectors.toList());
 
         return userDTOList;
+    }
+
+    @Override
+    public boolean addHistory(Long userId, Integer historyObjType, Long historyObjId) {
+        History history = new History();
+        history.setUserId(userId);history.setHistoryObjType(historyObjType);history.setHistoryObjId(historyObjId);
+        historyService.validHistory(history,true);
+        History addHistory = historyService.addHistory(history);
+        if(addHistory!=null){
+            return true;
+        }else {
+            return false;
+        }
     }
 }

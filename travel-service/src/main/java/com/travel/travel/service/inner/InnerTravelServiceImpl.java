@@ -1,6 +1,7 @@
 package com.travel.travel.service.inner;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.service.InnerTravelService;
@@ -24,6 +25,7 @@ public class InnerTravelServiceImpl implements InnerTravelService {
 
     @Resource
     private VideoService videoService;
+
 
     @Override
     public boolean updateTravelByTeamId(Long userId, Long teamId) {

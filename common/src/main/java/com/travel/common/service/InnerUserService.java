@@ -9,7 +9,7 @@ import java.util.Set;
  * @author jianping5
  * @createDate 22/3/2023 下午 8:57
  */
-public interface InnerUserService {
+public interface InnerUserService{
 
     /**
      * 根据用户 id 获取 用户
@@ -73,5 +73,9 @@ public interface InnerUserService {
      * @return
      */
     List<UserDTO> listUserByTeamId(Long teamId);
+    /**
+     * 添加历史记录
+     */
+    boolean addHistory(Long userId,Integer historyObjType,Long historyObjId);
 
 }

@@ -15,4 +15,5 @@ public interface InnerDataService {
      * @param dislike
      */
     void addBehavior(long loginUserId, int type, long id, BehaviorTypeConstant dislike);
+    void addBehavior(long loginUserId, int type, long id, Integer behaviorType);
 }

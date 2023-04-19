@@ -4,6 +4,7 @@ import com.travel.common.common.PageRequest;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author jianping5
@@ -45,6 +46,11 @@ public class ArticleQueryRequest extends PageRequest implements Serializable {
      * 搜索词
      */
     private String searchText;
+
+    /**
+     * id列表
+     */
+    private List<Long> idList;
 
 
     /**

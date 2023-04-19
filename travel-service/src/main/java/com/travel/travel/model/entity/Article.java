@@ -63,6 +63,9 @@ public class Article implements Serializable {
     @TableField(exist = false)
     private String detail;
 
+    @TableField(exist = false)
+    private Long detailId;
+
     /**
      * 地理位置
      */

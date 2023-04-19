@@ -4,11 +4,13 @@ import cn.hutool.core.bean.BeanUtil;
 import com.travel.user.model.entity.Message;
 import org.apache.catalina.mbeans.MBeanUtils;
 
+import java.io.Serializable;
+
 /**
  * @author zgy
  * @create 2023-04-03 22:21
  */
-public class MessageVO {
+public class MessageVO implements Serializable {
 
     /**
      * 消息ID
@@ -40,6 +42,8 @@ public class MessageVO {
      */
     private Integer messageState;
 
+    private static final long serialVersionUID = 1L;
+
     public static MessageVO objToVo(Message message){
         if(message == null){
             return null;
@@ -48,4 +52,5 @@ public class MessageVO {
         BeanUtil.copyProperties(message,messageVO);
         return messageVO;
     }
+
 }

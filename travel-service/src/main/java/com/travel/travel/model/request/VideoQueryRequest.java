@@ -4,6 +4,7 @@ import com.travel.common.common.PageRequest;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author jianping5
@@ -46,6 +47,10 @@ public class VideoQueryRequest extends PageRequest implements Serializable {
      */
     private String searchText;
 
+    /**
+     * id列表
+     */
+    private List<Long> idList;
 
     /**
      * 视频状态

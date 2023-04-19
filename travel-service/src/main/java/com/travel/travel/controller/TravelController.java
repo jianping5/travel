@@ -88,7 +88,7 @@ public class TravelController {
     }
 
     @PostMapping("/article/update")
-    public BaseResponse<Boolean> updateArticle(@RequestBody VideoUpdateRequest articleUpdateRequest) {
+    public BaseResponse<Boolean> updateArticle(@RequestBody ArticleUpdateRequest articleUpdateRequest) {
         // 校验团队更新请求体
         if (articleUpdateRequest == null || articleUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -132,6 +132,8 @@ public class TravelController {
         return ResultUtils.success(articleService.getArticleVO(article,articleDetail));
     }
 
+
+
     @PostMapping("/article/list/page/vo")
     public BaseResponse<Page<ArticleVO>> listArticleVOByPage(@RequestBody ArticleQueryRequest articleQueryRequest) {
         if (articleQueryRequest == null) {
@@ -144,6 +146,26 @@ public class TravelController {
         Page<Article> articlePage = articleService.queryArticle(articleQueryRequest);
 
         return ResultUtils.success(articleService.getArticleVOPage(articlePage));
+    }
+
+    /**
+     * 根据 Id 获取官方详情
+     */
+    @GetMapping("/detail")
+    public BaseResponse<ArticleVO> getArticleDetailVO(long articleId, long detailId) {
+        // 校验 id
+        if (articleId <= 0 || detailId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 获取官方，并将官方详情 id 注入
+        Article article = articleService.getById(articleId);
+        article.setDetailId(detailId);
+
+        if (article == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(articleService.getArticleDetailVO(article));
     }
 
 
@@ -233,6 +255,7 @@ public class TravelController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
+        //获取视频游记
         Video video = videoService.getById(id);
         if(video!=null){
             video.setViewCount(video.getViewCount()+1);
@@ -241,8 +264,9 @@ public class TravelController {
         if (video == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        // todo: 插入用户行为记录
-        return ResultUtils.success(videoService.getVideoVO(video));
+
+        //获取当前用户
+        return ResultUtils.success(videoService.getVideoDetail(video));
     }
 
 

@@ -1,7 +1,9 @@
 package com.travel.user.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.user.model.entity.History;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.travel.user.model.request.HistoryQueryRequest;
 
 /**
 * @author jianping5
@@ -10,4 +12,33 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface HistoryService extends IService<History> {
 
+
+
+    /**
+     * 校验 History
+     * @param history
+     * @param b
+     */
+    void validHistory(History history, boolean b);
+
+
+    /**
+     * 获取历史记录列表
+     */
+    Page<History> queryHistory(HistoryQueryRequest historyQueryRequest);
+
+    /**
+     * 历史记录
+     * @param History
+     * @return
+     */
+    History addHistory(History History);
+
+
+    /**
+     * 删除历史记录
+     * @param History
+     * @return
+     */
+    boolean deleteHistory(History History);
 }

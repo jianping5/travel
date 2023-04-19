@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentVOBlock {
+public class CommentVOBlock implements Serializable{
     /**
      * 一级评论
      */
@@ -22,4 +22,6 @@ public class CommentVOBlock {
      * 二级评论
      */
     private List<CommentVO> commentVOS;
+
+    private static final long serialVersionUID = 1L;
 }

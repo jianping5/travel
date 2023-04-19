@@ -5,24 +5,22 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 周边获取请求体
- *
  * @author jianping5
- * @createDate 31/3/2023 下午 6:49
+ * @createDate 23/3/2023 下午 2:01
  */
 @Data
-public class UserObtainRequest implements Serializable {
+public class FavoriteAddRequest implements Serializable {
 
     /**
-     * 周边 id
+     * 用户 id
      */
-    private Long id;
+    private Long userId;
 
     /**
-     * 获取方式
+     * 收藏夹名称
      */
-    private Integer obtainMethod;
-
+    private String favoriteName;
 
     private static final long serialVersionUID = 1L;
+
 }

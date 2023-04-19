@@ -24,7 +24,7 @@ import java.util.Set;
 */
 @Service
 public class BehaviorServiceImpl extends ServiceImpl<BehaviorMapper, Behavior>
-    implements BehaviorService{
+    implements BehaviorService {
 
     @Resource
     private ServiceRegistry serviceRegistry;

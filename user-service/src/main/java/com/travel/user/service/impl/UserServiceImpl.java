@@ -7,6 +7,8 @@ import com.travel.common.common.BaseResponse;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
+import com.travel.common.exception.ThrowUtils;
+import com.travel.common.utils.UserHolder;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.domain.Mail;
@@ -158,6 +160,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }else {
             return ResultUtils.error(ErrorCode.SYSTEM_ERROR,"注册失败，请稍后尝试");
         }
+    }
+
+    @Override
+    public void validUser(UserInfo userInfo, boolean add) {
+        if (userInfo == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long userId = userInfo.getUserId();
+        ThrowUtils.throwIf(userId==null,ErrorCode.PARAMS_ERROR,"用户Id不能为空！");
+    }
+
+    @Override
+    public boolean updateUser(UserInfo userInfo) {
+
+        // 判断当前用户是否为要修改的用户
+        com.travel.common.model.entity.User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+        Long userId = userInfo.getUserId();
+        ThrowUtils.throwIf(!loginUserId.equals(userId), ErrorCode.NO_AUTH_ERROR);
+
+        // 更新数据库
+        boolean updateResult = userInfoService.update(new QueryWrapper<UserInfo>().eq("user_id",userId));
+        ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
+        return true;
     }
 
     @Override

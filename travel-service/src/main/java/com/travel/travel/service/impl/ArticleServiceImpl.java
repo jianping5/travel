@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.common.ErrorCode;
+import com.travel.common.constant.BehaviorTypeConstant;
+import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.dto.UserDTO;
@@ -20,11 +22,18 @@ import com.travel.travel.mapper.ArticleMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -34,11 +43,15 @@ import java.util.stream.Collectors;
 */
 @Service
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
-    implements ArticleService{
+    implements ArticleService , com.travel.common.service.ArticleService {
     @DubboReference
     private InnerUserService innerUserService;
     @Resource
     private ArticleDetailService articleDetailService;
+    @Resource()
+    private RedissonClient redissonClient;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
     @Override
     public void validArticle(Article article, boolean add) {
         if (article == null) {
@@ -78,9 +91,50 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
             articleVO.setUserName("用户不存在");
             articleVO.setUserAvatar("");
         }
+        //获取当前登录对象
+        User loginUser = UserHolder.getUser();
+        if(loginUser!=null){
+            Long loginUserId = loginUser.getId();
+
+            // 注入点赞状态
+            RSet<Long> likeSet = redissonClient.getSet("travel:user:like:" + TypeConstant.ARTICLE + ":" + article.getId());
+            articleVO.setIsLiked(likeSet.contains(loginUserId)?1:0);
+
+            // 注入收藏状态
+            RSet<Long> collectSet = redissonClient.getSet("travel:user:collection:" + TypeConstant.ARTICLE + ":" + article.getId());
+            articleVO.setIsCollected(collectSet.contains(loginUserId)?1:0);
+
+            // 注入关注状态
+            RSet<Long> followSet = redissonClient.getSet("travel:user:follow:"+ article.getUserId());
+            articleVO.setIsFollowed(followSet.contains(loginUserId)?1:0);
+        }
         return articleVO;
     }
 
+    @Override
+    public ArticleVO getArticleDetailVO(Article article) {
+
+        //获取详情
+        ArticleDetail articleDetail = articleDetailService.getById(article.getDetailId());
+
+        //注入视图体
+        ArticleVO articleVO = getArticleVO(article, articleDetail);
+
+        //获取当前登录对象
+        User loginUser = UserHolder.getUser();
+        if(loginUser!=null){
+            Long userId = loginUser.getId();
+
+            // 插入历史记录
+            String historyMsg = userId+","+TypeConstant.ARTICLE.getTypeIndex()+","+article.getId();
+            rabbitTemplate.convertAndSend("user.history.execute",historyMsg);
+
+            // 加入用户行为记录表（消息队列）
+            String behaviorMsg = userId+","+TypeConstant.ARTICLE.getTypeIndex()+","+article.getId()+","+BehaviorTypeConstant.VIEW.getTypeIndex();
+            rabbitTemplate.convertAndSend("user.behavior.execute",behaviorMsg);
+        }
+        return articleVO;
+    }
     @Override
     public Page<ArticleVO> getArticleVOPage(Page<Article> articlePage) {
         if(articlePage == null){
@@ -91,20 +145,77 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         if (CollectionUtils.isEmpty(articleList)) {
             return articleVOPage;
         }
-
-        // 填充信息
-        List<ArticleVO> articleVOList = articleList.stream().map(article -> {
-            ArticleDetail articleDetail = articleDetailService.getOne(new QueryWrapper<ArticleDetail>().eq("article_id", article.getId()));
-            if (articleDetail==null) {
-                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-            }
-            ArticleVO articleVO = ArticleVO.objToVo(article,articleDetail);
-            return articleVO;
-        }).collect(Collectors.toList());
+        //填充信息
+        List<ArticleVO> articleVOList = getArticleVOList(articleList);
         articleVOPage.setRecords(articleVOList);
         return articleVOPage;
     }
 
+    /**
+     * 根据文章列表获取文章视图体列表
+     * @param articleList
+     * @return
+     */
+    public List<ArticleVO> getArticleVOList(List<Article> articleList) {
+        // 获取用户 id 列表
+        Set<Long> userIdSet = articleList.stream().map(Article::getUserId).collect(Collectors.toSet());
+
+        // 获取用户列表
+        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
+
+        // 将用户 id 和用户对应起来
+        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
+
+        // 获取 map（官方 id，官方详情 List）
+        Set<Long> articleIdSet = articleList.stream().map(article -> article.getId()).collect(Collectors.toSet());
+        QueryWrapper<ArticleDetail> articleDetailQueryWrapper = new QueryWrapper<>();
+        articleDetailQueryWrapper.in("article_id", articleIdSet);
+        List<ArticleDetail> articleDetailList = articleDetailService.list(articleDetailQueryWrapper);
+        Map<Long, List<ArticleDetail>> articleIdDetailListMap = articleDetailList.stream().collect(Collectors.groupingBy(ArticleDetail::getArticleId));
+
+        // 填充信息
+        List<ArticleVO> articleVOList = articleList.stream().map(article -> {
+            // 获取官方视图体
+            ArticleVO articleVO = ArticleVO.objToVo(article,null);
+            // 注入用户到官方视图体内
+            Long userId = article.getUserId();
+            UserDTO userDTO = null;
+            if (userIdUserListMap.containsKey(userId)) {
+                userDTO = userIdUserListMap.get(userId).get(0);
+            }
+            articleVO.setUserAvatar(userDTO.getUserAvatar());
+            articleVO.setUserName(userDTO.getUserName());
+
+            // 注入官方详情 id 到官方视图体内
+            Long articleId = article.getId();
+            ArticleDetail articleDetail = null;
+            if (articleIdDetailListMap.containsKey(articleId)) {
+                articleDetail = articleIdDetailListMap.get(articleId).get(0);
+            }
+            articleVO.setDetailId(articleDetail.getId());
+            //获取当前登录对象
+            User loginUser = UserHolder.getUser();
+            if(loginUser!=null){
+                Long loginUserId = loginUser.getId();
+
+                // 注入点赞状态
+                RSet<Long> likeSet = redissonClient.getSet("travel:user:like:" + TypeConstant.ARTICLE + ":" + article.getId());
+                articleVO.setIsLiked(likeSet.contains(loginUserId)?1:0);
+
+                // 注入收藏状态
+                RSet<Long> collectSet = redissonClient.getSet("travel:user:collection:" + TypeConstant.ARTICLE + ":" + article.getId());
+                articleVO.setIsCollected(collectSet.contains(loginUserId)?1:0);
+
+                // 注入关注状态
+                RSet<Long> followSet = redissonClient.getSet("travel:user:follow:"+ article.getUserId());
+                articleVO.setIsFollowed(followSet.contains(loginUserId)?1:0);
+            }
+            return articleVO;
+        }).collect(Collectors.toList());
+
+        return articleVOList;
+    }
+    
     @Override
     public Page<Article> queryArticle(ArticleQueryRequest articleQueryRequest) {
         QueryWrapper<Article> queryWrapper = new QueryWrapper<>();
@@ -112,6 +223,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
             return null;
         }
         // 获取查询条件中的字段
+        List<Long> idList = articleQueryRequest.getIdList();
         String searchText = articleQueryRequest.getSearchText();
         Long userId = articleQueryRequest.getUserId();
         Integer permission = articleQueryRequest.getPermission();
@@ -122,6 +234,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         Long current = articleQueryRequest.getCurrent();
         Integer orderType = articleQueryRequest.getOrderType();
         int fromIndex = 0;
+        //id限制
+        if (!ObjectUtils.anyNull(idList)) {
+            queryWrapper.in(ObjectUtils.isNotEmpty(idList),"id", idList);
+        }
         //内容模糊限制
         if (StringUtils.isNotBlank(searchText)) {
             queryWrapper.like("tag", searchText).or().like("intro", searchText).or().like("title", searchText);
@@ -146,7 +262,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         }else if (queryType!=null&&queryType.equals(2)){
             //旅游攻略
             queryWrapper.like("tag","攻略");
-
         }
         //排序限制
         if(orderType!=null&&orderType.equals(0)){
@@ -156,22 +271,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         }else if(orderType!=null&&orderType.equals(1)){
             //最新发布
             queryWrapper.orderByDesc("update_time");
-
         }
-
-        // todo:猜你喜欢直接走数据服务接口
-//        Page<Article> articlePage = new Page<>();
-//        List<Article> articles = list(queryWrapper);
-//        //起始位置限制
-//        if(lastEndId != null&&articles!=null){
-//            fromIndex = Math.min(articles.indexOf(getById(lastEndId)),articles.size());
-//            articlePage.setTotal(articles.size());
-//        }
-//        List<Article> articleList = list(queryWrapper.select("*").last("limit " + pageSize + " offset " + fromIndex));
-//        articlePage.setSize(pageSize);
-//        articlePage.setRecords(articleList);
-//        articlePage.setCurrent(0);
-        Page page = page(new Page(current, pageSize), queryWrapper);
+        Page<Article> page = page(new Page<Article>(current, pageSize), queryWrapper);
         return page;
     }
 

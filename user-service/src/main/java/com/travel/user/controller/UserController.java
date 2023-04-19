@@ -17,6 +17,7 @@ import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
+import com.travel.user.model.entity.UserInfo;
 import com.travel.user.model.request.*;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.FormatValidator;
@@ -242,6 +243,31 @@ public class UserController {
         return ResultUtils.success(user);
     }
 
+    @PostMapping("/user/update")
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+        // 校验团队更新请求体
+        if (userUpdateRequest == null || userUpdateRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 将团队更新请求体的内容赋值给 团队
+        UserInfo userInfo = new UserInfo();
+        BeanUtils.copyProperties(userUpdateRequest, userInfo);
+
+        // 参数校验
+        userService.validUser(userInfo, false);
+        long id = userUpdateRequest.getId();
+
+        // 判断是否存在
+        User oldPost = userService.getById(id);
+        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+
+        // 更新用户信息
+        userService.updateUser(userInfo);
+
+        return ResultUtils.success(true);
+    }
+
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         User user = UserHolder.getUser();
@@ -257,36 +283,6 @@ public class UserController {
         }
         return "logout";
     }
-
-
-//    /**
-//     * 更新用户
-//     * @return
-//     */
-//    @PostMapping("/update")
-//    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest derivativeUpdateRequest) {
-//        // 校验团队更新请求体
-//        if (derivativeUpdateRequest == null || derivativeUpdateRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//
-//        // 将团队更新请求体的内容赋值给 团队
-//        Derivative Derivative = new Derivative();
-//        BeanUtils.copyProperties(derivativeUpdateRequest, Derivative);
-//
-//        // 参数校验
-//        derivativeService.validDerivative(Derivative, false);
-//        long id = derivativeUpdateRequest.getId();
-//
-//        // 判断是否存在
-//        Derivative oldPost = derivativeService.getById(id);
-//        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
-//
-//        // 更新团队
-//        derivativeService.updateDerivative(Derivative);
-//
-//        return ResultUtils.success(true);
-//    }
 
 
     /**
@@ -307,27 +303,5 @@ public class UserController {
         }
         return ResultUtils.success(userService.getUserVO(user));
     }
-//
-//    /**
-//     * 分页获取列表（封装类）
-//     *
-//     * @param derivativeQueryRequest
-//     * @return
-//     */
-//    @PostMapping("/list/page/vo")
-//    public BaseResponse<Page<DerivativeVO>> listUserVOByPage(@RequestBody UserQueryRequest derivativeQueryRequest) {
-//        if (derivativeQueryRequest == null) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//
-//        long current = derivativeQueryRequest.getCurrent();
-//        long size = derivativeQueryRequest.getPageSize();
-//        // 限制爬虫
-//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-//        Page<Derivative> derivativePage = derivativeService.page(new Page<>(current, size),
-//                derivativeService.getQueryWrapper(derivativeQueryRequest));
-//
-//        return ResultUtils.success(derivativeService.getDerivativeVOPage(derivativePage));
-//    }
 
 }

@@ -28,4 +28,16 @@ public class InnerDataServiceImpl implements InnerDataService {
         // todo：失败了怎么解决？
         behaviorService.save(behavior);
     }
+    @Override
+    public void addBehavior(long loginUserId, int type, long id, Integer behaviorType) {
+        // 初始化 behavior
+        Behavior behavior = new Behavior();
+        behavior.setUserId(loginUserId);
+        behavior.setBehaviorObjType(type);
+        behavior.setBehaviorObjId(id);
+        behavior.setBehaviorType(behaviorType);
+
+        // todo：失败了怎么解决？
+        behaviorService.save(behavior);
+    }
 }

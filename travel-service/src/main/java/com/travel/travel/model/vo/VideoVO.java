@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -16,7 +17,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VideoVO {
+public class VideoVO implements Serializable {
 
     /**
      * 主键
@@ -109,10 +110,16 @@ public class VideoVO {
     private Integer isCollected;
 
     /**
+     * 是否已关注
+     */
+    private Integer isFollowed;
+
+    /**
      * 更新时间
      */
     private Date updateTime;
 
+    private static final long serialVersionUID = 1L;
     public static VideoVO objToVo(Video video){
         if(video == null){
             return null;

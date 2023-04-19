@@ -26,6 +26,7 @@ import com.travel.travel.mapper.CommentMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -41,9 +42,11 @@ import java.util.stream.Collectors;
 * @createDate 2023-03-24 19:23:06
 */
 @Service
-public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService{
+public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService, com.travel.common.service.CommentService {
     @DubboReference
     private InnerUserService innerUserService;
+    @Resource()
+    private RedissonClient redissonClient;
     @Override
     public void validComment(Comment comment, boolean add) {
         if (comment == null) {
@@ -90,6 +93,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             commentVO.setParentUserName("用户不存在");
             commentVO.setParentUserAvatarUrl("");
         }
+
+        //todo:注入点赞状态
+
         return commentVO;
     }
 
