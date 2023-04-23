@@ -8,6 +8,7 @@ import com.travel.travel.model.entity.Video;
 import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.service.VideoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.BeanUtils;
 
@@ -34,7 +35,7 @@ public class InnerVideoServiceImpl implements InnerVideoService {
         // 先根据行为对象 id 列表查询对应的用户集
         QueryWrapper<Video> videoQueryWrapper = new QueryWrapper<>();
         videoQueryWrapper.select("user_id");
-        videoQueryWrapper.in("id", idList);
+        videoQueryWrapper.in(!ObjectUtils.isEmpty(idList),"id", idList);
         Set<Long> userIdSet = videoService.list(videoQueryWrapper).stream().map(video -> video.getUserId()).collect(Collectors.toSet());
 
         // 根据用户集查询这些用户最近发布的游记

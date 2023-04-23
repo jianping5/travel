@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
 * @author jianping5
 * @description 针对表【favorite(收藏夹)】的数据库操作Service实现
@@ -50,7 +52,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite>
 
         @Override
         public Page<Favorite> queryFavorite(FavoriteQueryRequest favoriteQueryRequest) {
-            QueryWrapper<Favorite> queryWrapper = new QueryWrapper<>();
+            QueryWrapper<Favorite> queryWrapper = new QueryWrapper<Favorite>();
             if (favoriteQueryRequest == null) {
                 return null;
             }
@@ -65,11 +67,11 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite>
             queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
 
             //排序
-            queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
-                    sortField);
+            queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
 
 
-            return page(new Page<>(current, pageSize), queryWrapper);
+            Page<Favorite> page = this.getBaseMapper().selectPage(new Page<Favorite>(current,pageSize), queryWrapper);
+            return page;
         }
 
         @Override

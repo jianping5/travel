@@ -14,6 +14,8 @@ import com.travel.common.model.entity.User;
 import com.travel.common.utils.UserHolder;
 import com.travel.user.model.request.UserLikeRequest;
 import com.travel.user.service.UserLikeService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,24 +31,28 @@ import javax.annotation.Resource;
  * @create 2023-04-17 15:07
  */
 @RestController
-@RequestMapping("/follow")
+@Api(tags = "点赞 Controller")
+@RequestMapping("/like")
 public class UserLikeController {
     @Resource
     private UserLikeService userLikeService;
-    @Resource()
+    @Resource
     private RedissonClient redissonClient;
     @Resource
     private RabbitTemplate rabbitTemplate;
 
-    @PostMapping("/userLike/execute")
+    @PostMapping("/execute")
+    @ApiOperation("点赞/取消点赞")
     public BaseResponse<Boolean> executeUserLike(@RequestBody UserLikeRequest userLikeRequest) {
         // 校验关注请求体
-        if (userLikeRequest == null || userLikeRequest.getId() <= 0) {
+        if (userLikeRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        userLikeService.validUserLike(userLikeRequest, true);
         // 获取当前登录用户
         User loginUser = UserHolder.getUser();
+        userLikeRequest.setUserId(loginUser.getId());
+
+        userLikeService.validUserLike(userLikeRequest, true);
 
         // 仅本人或管理员可更改
         if (!userLikeRequest.getUserId().equals(loginUser.getId())) {
@@ -55,7 +61,7 @@ public class UserLikeController {
 
         // 定义交换机名称
         String exchangeName = "travel.topic";
-        String message = new Gson().toJson(userLikeRequest);;
+        String message = new Gson().toJson(userLikeRequest);
 
         //获取关注实体
         RSet<Long> list = redissonClient.getSet("travel:user:like:" + userLikeRequest.getLikeObjType()+":"+userLikeRequest.getLikeObjId());

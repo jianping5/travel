@@ -60,8 +60,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Random random = new Random();
         Integer confirmCode = random.nextInt(899999)+100000;
         //发送验证码
-        String message = "您的验证码是："+confirmCode.toString()+"。5分钟内有效，请妥善保管验证码，谨防泄露，如非本人操作请忽略！";
-        boolean status = MailUtils.sendMail(new Mail("Co-Help验证码", message), userEmail);
+        String message = "您的验证码是："+confirmCode+"。5分钟内有效，请妥善保管验证码，谨防泄露，如非本人操作请忽略！";
+        boolean status = MailUtils.sendMail(new Mail("Travel验证码", message), userEmail);
         if (status) {
             return confirmCode.toString();
         }

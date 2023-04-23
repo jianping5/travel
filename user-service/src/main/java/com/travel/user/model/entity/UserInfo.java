@@ -4,11 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 用户基本信息表
@@ -76,7 +74,7 @@ public class UserInfo implements Serializable {
     /**
      * 获赞数
      */
-    private Integer likeNum;
+    private Integer likeCount;
 
     /**
      * 浏览数
@@ -124,7 +122,7 @@ public class UserInfo implements Serializable {
             && (this.getSignature() == null ? other.getSignature() == null : this.getSignature().equals(other.getSignature()))
             && (this.getBirth() == null ? other.getBirth() == null : this.getBirth().equals(other.getBirth()))
             && (this.getSex() == null ? other.getSex() == null : this.getSex().equals(other.getSex()))
-            && (this.getLikeNum() == null ? other.getLikeNum() == null : this.getLikeNum().equals(other.getLikeNum()))
+            && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getViewCount() == null ? other.getViewCount() == null : this.getViewCount().equals(other.getViewCount()))
             && (this.getFollowCount() == null ? other.getFollowCount() == null : this.getFollowCount().equals(other.getFollowCount()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
@@ -146,7 +144,7 @@ public class UserInfo implements Serializable {
         result = prime * result + ((getSignature() == null) ? 0 : getSignature().hashCode());
         result = prime * result + ((getBirth() == null) ? 0 : getBirth().hashCode());
         result = prime * result + ((getSex() == null) ? 0 : getSex().hashCode());
-        result = prime * result + ((getLikeNum() == null) ? 0 : getLikeNum().hashCode());
+        result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getViewCount() == null) ? 0 : getViewCount().hashCode());
         result = prime * result + ((getFollowCount() == null) ? 0 : getFollowCount().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
@@ -171,7 +169,7 @@ public class UserInfo implements Serializable {
         sb.append(", signature=").append(signature);
         sb.append(", birth=").append(birth);
         sb.append(", sex=").append(sex);
-        sb.append(", likeNum=").append(likeNum);
+        sb.append(", likeCount=").append(likeCount);
         sb.append(", viewCount=").append(viewCount);
         sb.append(", followCount=").append(followCount);
         sb.append(", createTime=").append(createTime);

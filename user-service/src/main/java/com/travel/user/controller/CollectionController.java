@@ -13,6 +13,8 @@ import com.travel.user.model.entity.Collection;
 import com.travel.user.model.request.CollectionQueryRequest;
 import com.travel.user.model.request.CollectionRequest;
 import com.travel.user.service.CollectionService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -28,24 +30,29 @@ import javax.annotation.Resource;
  * @create 2023-04-17 15:07
  */
 @RestController
-@RequestMapping("/follow")
+@Api(tags = "收藏 Controller")
+@RequestMapping("/collection")
 public class CollectionController {
     @Resource
     private CollectionService collectionService;
-    @Resource()
+    @Resource
     private RedissonClient redissonClient;
     @Resource
     private RabbitTemplate rabbitTemplate;
 
+    @ApiOperation(value = "收藏/取消收藏")
     @PostMapping("/collection/execute")
     public BaseResponse<Boolean> executeCollection(@RequestBody CollectionRequest collectionRequest) {
         // 校验关注请求体
-        if (collectionRequest == null || collectionRequest.getId() <= 0) {
+        if (collectionRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        collectionService.validCollection(collectionRequest, true);
         // 获取当前登录用户
         User loginUser = UserHolder.getUser();
+        collectionRequest.setUserId(loginUser.getId());
+
+        collectionService.validCollection(collectionRequest, true);
+
 
         // 仅本人或管理员可更改
         if (!collectionRequest.getUserId().equals(loginUser.getId())) {
@@ -73,13 +80,14 @@ public class CollectionController {
         return ResultUtils.success(true);
     }
 
-
+    @ApiOperation(value = "获取收藏列表")
     @PostMapping("/collection/list/page/vo")
     public BaseResponse<Page<CollectionVO>> listCollectionVOByPage(@RequestBody CollectionQueryRequest collectionQueryRequest) {
         if (collectionQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
+        User user = UserHolder.getUser();
+        collectionQueryRequest.setUserId(user.getId());
         long size = collectionQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);

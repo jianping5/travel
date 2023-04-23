@@ -7,10 +7,9 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
-import com.travel.common.model.entity.User;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
-import com.travel.common.utils.UserHolder;
 import com.travel.user.mapper.FollowMapper;
 import com.travel.user.model.dto.FollowVO;
 import com.travel.user.model.entity.Follow;
@@ -23,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -75,10 +76,24 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
      * @return
      */
     public List<FollowVO> getFollowVOList(List<Follow> followList) {
+        // 获取用户 id 列表
+        Set<Long> userIdSet = followList.stream().map(Follow::getFollowUserId).collect(Collectors.toSet());
+
+        // 获取用户列表
+        List<UserDTO> userDTOList = innerUserService.listByIds(userIdSet);
+
+        // 将用户 id 和用户对应起来
+        Map<Long, List<UserDTO>> userIdUserListMap = userDTOList.stream().collect(Collectors.groupingBy(UserDTO::getId));
         // 填充信息
         List<FollowVO> followVOList = followList.stream().map(follow -> {
             // 获取官方视图体
             FollowVO followVO = FollowVO.objToVo(follow);
+            UserDTO userDTO = null;
+            if (userIdUserListMap.containsKey(follow.getFollowUserId())) {
+                userDTO = userIdUserListMap.get(follow.getFollowUserId()).get(0);
+            }
+            followVO.setFollowUserAvatar(userDTO.getUserAvatar());
+            followVO.setFollowUserName(userDTO.getUserName());
             return followVO;
         }).collect(Collectors.toList());
         return followVOList;
@@ -99,7 +114,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
 
         //拼接查询条件
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
-        queryWrapper.eq("follow_state", 0);
+        queryWrapper.eq("follow_state", 1);
 
         //排序
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
@@ -110,20 +125,18 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
 
     @Override
     public Follow executeFollow(Follow follow) {
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        // 设置用户 id
-        follow.setUserId(loginUserId);
         QueryWrapper<Follow> eq = new QueryWrapper<Follow>()
-                .eq("user_id", loginUserId)
+                .eq("user_id", follow.getUserId())
                 .eq("follow_user_id", follow.getFollowUserId());
         Follow oldFollow = getOne(eq);
         if(oldFollow==null){
             boolean save = save(follow);
             Follow newFollow = this.getById(follow.getId());
+            // todo:更新关注数
             return newFollow;
         }else {
             oldFollow.setFollowState(follow.getFollowState());
+            // todo:更新关注数
             boolean update = updateById(oldFollow);
             return oldFollow;
         }

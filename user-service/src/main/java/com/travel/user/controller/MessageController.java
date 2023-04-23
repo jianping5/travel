@@ -1,5 +1,6 @@
 package com.travel.user.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.common.BaseResponse;
 import com.travel.common.common.DeleteRequest;
@@ -15,6 +16,8 @@ import com.travel.user.model.request.MessageQueryRequest;
 import com.travel.user.model.request.MessageUpdateRequest;
 import com.travel.user.service.MessageService;
 import com.travel.user.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +31,7 @@ import javax.annotation.Resource;
  */
 @Slf4j
 @RestController
+@Api(tags = "消息 Controller")
 @RequestMapping("/message")
 public class MessageController {
     @Resource()
@@ -39,9 +43,8 @@ public class MessageController {
     @Resource
     private MessageService messageService;
 
-
-
     @PostMapping("/delete")
+    @ApiOperation(value = "删除消息")
     public BaseResponse<Boolean> deleteMessage(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -67,46 +70,33 @@ public class MessageController {
         return ResultUtils.success(true);
     }
     
-    @PostMapping("/update")
-    public BaseResponse<Boolean> updateMessage(@RequestBody MessageUpdateRequest messageUpdateRequest) {
-        // 校验消息更新请求体
-        if (messageUpdateRequest == null || messageUpdateRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-
-        // 将消息更新请求体的内容赋值给消息
-        Message message = new Message();
-        BeanUtils.copyProperties(messageUpdateRequest, message);
-
-        // 参数校验
-        messageService.validMessage(message, false);
-        long id = messageUpdateRequest.getId();
-
-        // 判断是否存在
-        Message oldPost = messageService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
-
-        // 更新消息
-        messageService.updateMessage(message);
-
-        return ResultUtils.success(true);
-    }
-    
-    @GetMapping("/get/vo")
-    public BaseResponse<MessageVO> getMessageVOById(long id) {
+    @GetMapping("/get/detail")
+    @ApiOperation(value = "根据id获取消息详情")
+    public BaseResponse<MessageVO> getMessageDetailById(long id) {
         // 校验 id
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
         Message message = messageService.getById(id);
+
+        //更新消息的阅读状态
         if (message == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }else{
+            // 判断当前用户是否为当前消息的创建人
+            User loginUser = UserHolder.getUser();
+            Long loginUserId = loginUser.getId();
+            Long messageUserId = message.getUserId();
+            if(loginUserId.equals(messageUserId)){
+                message.setMessageState(1);
+                messageService.updateById(message);
+            }
         }
-        return ResultUtils.success(messageService.getMessageVO(message));
+        return ResultUtils.success(messageService.getMessageDetail(message));
     }
     
     @PostMapping("/list/page/vo")
+    @ApiOperation(value = "获取消息列表")
     public BaseResponse<Page<MessageVO>> listMessageVOByPage(@RequestBody MessageQueryRequest messageQueryRequest) {
         if (messageQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -117,9 +107,8 @@ public class MessageController {
         long size = messageQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Message> messagePage = messageService.page(new Page<>(current, size),
-                messageService.getQueryWrapper(messageQueryRequest));
-
+        QueryWrapper<Message> queryWrapper = messageService.getQueryWrapper(messageQueryRequest);
+        Page<Message> messagePage = messageService.page(new Page<>(current, size),queryWrapper);
         return ResultUtils.success(messageService.getMessageVOPage(messagePage));
     }
 }

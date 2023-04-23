@@ -1,4 +1,4 @@
-package com.travel.user.interceptor;
+package com.travel.travel.interceptor;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.google.gson.Gson;

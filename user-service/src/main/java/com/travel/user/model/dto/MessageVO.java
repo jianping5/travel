@@ -2,6 +2,7 @@ package com.travel.user.model.dto;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.travel.user.model.entity.Message;
+import lombok.Data;
 import org.apache.catalina.mbeans.MBeanUtils;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @author zgy
  * @create 2023-04-03 22:21
  */
+@Data
 public class MessageVO implements Serializable {
 
     /**
@@ -21,6 +23,11 @@ public class MessageVO implements Serializable {
      * 用户 id
      */
     private Long userId;
+
+    /**
+     * 消息标题
+     */
+    private String title;
 
     /**
      * 消息内容
@@ -41,6 +48,21 @@ public class MessageVO implements Serializable {
      * 消息状态（0：未读 1：已读）
      */
     private Integer messageState;
+
+    /**
+     * 消息关联用户id
+     */
+    private Long messageUserId;
+
+    /**
+     * 消息关联用户昵称
+     */
+    private String messageUserName;
+
+    /**
+     * 消息关联用户头像
+     */
+    private String messageUserAvatarUrl;
 
     private static final long serialVersionUID = 1L;
 

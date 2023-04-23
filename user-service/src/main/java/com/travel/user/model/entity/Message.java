@@ -4,10 +4,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 消息表
@@ -28,7 +27,7 @@ public class Message implements Serializable {
     private Long userId;
 
     /**
-     * 标题
+     * 消息标题
      */
     private String title;
 
@@ -46,10 +45,7 @@ public class Message implements Serializable {
      * 消息关联对象 id
      */
     private Long messageObjId;
-    /**
-     * 消息关联对象 id
-     */
-    private Long messageUserId;
+
     /**
      * 消息状态（0：未读 1：已读）
      */
@@ -69,6 +65,12 @@ public class Message implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 消息关联用户id
+     */
+    private Long messageUserId;
+
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
@@ -93,7 +95,9 @@ public class Message implements Serializable {
             && (this.getMessageState() == null ? other.getMessageState() == null : this.getMessageState().equals(other.getMessageState()))
             && (this.getIsDeleted() == null ? other.getIsDeleted() == null : this.getIsDeleted().equals(other.getIsDeleted()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
+            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
+            && (this.getMessageUserId() == null ? other.getMessageUserId() == null : this.getMessageUserId().equals(other.getMessageUserId()))
+            && (this.getTitle() == null ? other.getTitle() == null : this.getTitle().equals(other.getTitle()));
     }
 
     @Override
@@ -109,6 +113,8 @@ public class Message implements Serializable {
         result = prime * result + ((getIsDeleted() == null) ? 0 : getIsDeleted().hashCode());
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
+        result = prime * result + ((getMessageUserId() == null) ? 0 : getMessageUserId().hashCode());
+        result = prime * result + ((getTitle() == null) ? 0 : getTitle().hashCode());
         return result;
     }
 
@@ -127,6 +133,8 @@ public class Message implements Serializable {
         sb.append(", isDeleted=").append(isDeleted);
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
+        sb.append(", messageUserId=").append(messageUserId);
+        sb.append(", title=").append(title);
         sb.append(", serialVersionUID=").append(serialVersionUID);
         sb.append("]");
         return sb.toString();

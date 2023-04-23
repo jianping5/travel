@@ -47,9 +47,9 @@ public class MessageListener {
     private MessageService messageService;
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue("user.collect.execute"),
+            value = @Queue("user.collection.execute"),
             exchange = @Exchange(value = "travel.topic", type = ExchangeTypes.TOPIC),
-            key = "user.collect.execute"
+            key = "user.collection.execute"
 
     ))
     public void executeCollect(String msg) {

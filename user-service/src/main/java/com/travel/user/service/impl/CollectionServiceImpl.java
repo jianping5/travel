@@ -129,12 +129,8 @@ public class CollectionServiceImpl extends ServiceImpl<CollectionMapper, Collect
 
     @Override
     public void executeCollection(Collection collection,Boolean isAdd) {
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        // 设置用户 id
-        collection.setUserId(loginUserId);
         QueryWrapper<Collection> eq = new QueryWrapper<Collection>()
-                .eq("user_id", loginUserId)
+                .eq("user_id", collection.getUserId())
                 .eq("favorite_id",collection.getFavoriteId())
                 .eq("collection_obj_type", collection.getCollectionObjType())
                 .eq("collection_obj_id", collection.getCollectionObjId());
@@ -142,10 +138,12 @@ public class CollectionServiceImpl extends ServiceImpl<CollectionMapper, Collect
         if(oldCollection==null){
             if(!isAdd){ return; }
             boolean save = save(collection);
+            //todo:更新收藏量
             ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR);
         }else {
             if(isAdd){  return; }
             boolean remove = removeById(oldCollection);
+            //todo:更新收藏量
             ThrowUtils.throwIf(!remove,ErrorCode.SYSTEM_ERROR);
         }
     }
