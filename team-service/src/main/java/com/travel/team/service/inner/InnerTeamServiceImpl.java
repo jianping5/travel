@@ -13,6 +13,7 @@ import com.travel.team.model.entity.Team;
 import com.travel.team.model.vo.TeamVO;
 import com.travel.team.service.TeamService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -107,17 +108,23 @@ public class InnerTeamServiceImpl implements InnerTeamService {
             // 构建 ES (id, teamName) 的 map
             HashMap<Long, String> teamIdNameMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    teamIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("teamName").get(0)));
+            searchHitList.stream().forEach(searchHit -> {
+                List<String> teamNameList = searchHit.getHighlightField("teamName");
+                if (CollectionUtils.isNotEmpty(teamNameList)) {
+                    teamIdNameMap.put(searchHit.getContent().getId(), teamNameList.get(0));
+                } else {
+                    teamIdNameMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
-            teamQueryWrapper.in("id", teamIdNameMap.keySet());
+            teamQueryWrapper.in(CollectionUtils.isNotEmpty(teamIdNameMap.keySet()), "id", teamIdNameMap.keySet());
             // todo：注意 sortField 若为 all，则表示综合排序
             if ("all".equals(sortField)) {
                 teamQueryWrapper.last("order by 5*travel_count+3*news_count desc");
             } else {
-                teamQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                teamQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             
             List<Team> teamList = teamMapper.selectList(teamQueryWrapper);
@@ -133,7 +140,9 @@ public class InnerTeamServiceImpl implements InnerTeamService {
                     if (idTeamMap.containsKey(teamId)) {
                         // 将 team 的非高亮字段赋值为高亮的值
                         Team team = idTeamMap.get(teamId).get(0);
-                        team.setTeamName(highLightTeamName);
+                        if (StringUtils.isNotEmpty(highLightTeamName)) {
+                            team.setTeamName(highLightTeamName);
+                        }
                         resourceList.add(team);
                     } else {
                         // 从 es 清空 db 已物理删除的数据
@@ -155,12 +164,12 @@ public class InnerTeamServiceImpl implements InnerTeamService {
         // 先根据行为对象 id 列表查询对应的用户集
         QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
         teamQueryWrapper.select("user_id");
-        teamQueryWrapper.in("id", idList);
+        teamQueryWrapper.in(CollectionUtils.isNotEmpty(idList), "id", idList);
         Set<Long> userIdSet = teamService.list(teamQueryWrapper).stream().map(team -> team.getUserId()).collect(Collectors.toSet());
 
         // 根据用户集查询这些用户最近发布的团队
         QueryWrapper<Team> newTeamQueryWrapper = new QueryWrapper<>();
-        newTeamQueryWrapper.in("user_id", userIdSet);
+        newTeamQueryWrapper.in(CollectionUtils.isNotEmpty(userIdSet),"user_id", userIdSet);
         newTeamQueryWrapper.orderByDesc("create_time");
         Page<Team> page = teamService.page(new Page<>(pageNum, pageSize), newTeamQueryWrapper);
 

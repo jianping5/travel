@@ -37,6 +37,7 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag>
             Tag tag = new Tag();
             tag.setTagName(tagStr);
             tag.setTagType(tagType);
+            tag.setIsCustomized(1);
             return tag;
         }).collect(Collectors.toList());
 

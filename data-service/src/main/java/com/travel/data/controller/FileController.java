@@ -11,12 +11,11 @@ import com.travel.common.model.entity.User;
 import com.travel.common.model.enums.FileUploadBizEnum;
 import com.travel.common.utils.UserHolder;
 import com.travel.data.manager.CosManager;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -28,8 +27,9 @@ import java.util.Arrays;
  * @author jianping5
  */
 @RestController
-@RequestMapping("/data-file")
+@RequestMapping("/file")
 @Slf4j
+@Api(tags = "文件 Controller")
 public class FileController {
 
     @Resource
@@ -42,8 +42,9 @@ public class FileController {
      * @param uploadFileRequest
      * @return
      */
+    @ApiOperation(value = "文件上传")
     @PostMapping("/upload")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile, @RequestPart("jsonData") UploadFileRequest uploadFileRequest) {
+    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile, UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
         FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
         if (fileUploadBizEnum == null) {

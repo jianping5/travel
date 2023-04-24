@@ -1,5 +1,4 @@
 create database travel_official;
-
 use travel_official;
 create table derivative
 (
@@ -24,19 +23,19 @@ create table derivative
 
 create table notification
 (
-    id             bigint auto_increment comment '主键'
+    id                 bigint auto_increment comment '主键'
         primary key,
-    user_id        bigint                                 not null comment '所属用户 id',
-    official_id    bigint                                 not null comment '所属官方 id',
-    type_id        bigint                                 not null comment '官方类型 id',
-    title          varchar(100)                           not null comment '标题',
-    cover_url      varchar(512)                           not null comment '封面 URL',
-    intro          varchar(255) default ''                not null comment '资讯通知首句话',
-    detail         text                                   not null comment '资讯通知详情',
-    view_count     int          default 0                 not null comment '浏览量',
-    notification_state int      default 0                 not null comment '资源状态（0：正常 1：异常 2：删除）',
-    create_time    datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time    datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
+    user_id            bigint                                 not null comment '所属用户 id',
+    official_id        bigint                                 not null comment '所属官方 id',
+    type_id            int                                    not null comment '官方类型 id',
+    title              varchar(100)                           not null comment '标题',
+    cover_url          varchar(512)                           not null comment '封面 URL',
+    intro              varchar(255) default ''                not null comment '资讯通知首句话',
+    detail             text                                   not null comment '资讯通知详情',
+    view_count         int          default 0                 not null comment '浏览量',
+    notification_state int          default 0                 not null comment '资源状态（0：正常 1：异常 2：删除）',
+    create_time        datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time        datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
 )
     comment '资讯通知表';
 
@@ -50,7 +49,7 @@ create table official
     city           varchar(20)                            not null comment '城市',
     location       varchar(255)                           not null comment '地点',
     lat_and_long   varchar(70)                            not null comment '经纬度',
-    cover_url      varchar(512)                           not null comment '封面 URL',
+    cover_url      varchar(512)                           null comment '封面 URL',
     video_url      varchar(512)                           null comment '视频 URL',
     type_id        int                                    not null comment '类型 id',
     contact        varchar(255)                           null comment '联系方式',
@@ -101,7 +100,7 @@ create table official_resource
     user_id        bigint                                 not null comment '所属用户 id',
     official_id    bigint                                 not null comment '所属官方 id',
     cover_url      varchar(512)                           not null comment '封面 URL',
-    price          int                                    null comment '价格',
+    price          varchar(100)                           null comment '价格',
     title          varchar(100)                           not null comment '标题',
     type_id        int                                    not null comment '类型 id',
     intro          varchar(255) default ''                not null comment '官方资源首句话',
@@ -143,6 +142,8 @@ create table review
     review_obj_id   bigint                                 not null comment '点评对象',
     content         varchar(2048)                          not null comment '点评内容',
     location        varchar(255) default ''                not null comment '地理位置',
+    like_count      int          default 0                 not null comment '点赞量',
+    reply_count     int          default 0                 not null comment '回复量',
     is_deleted      tinyint      default 0                 not null comment '是否删除',
     create_time     datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time     datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'

@@ -23,6 +23,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,6 +46,9 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void validReview(Review review, boolean add) {
@@ -76,6 +80,13 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
         boolean saveResult = this.save(review);
         ThrowUtils.throwIf(!saveResult, ErrorCode.OPERATION_ERROR);;
 
+        // 增加对应实体的点评数
+        Long reviewObjId = review.getReviewObjId();
+        int status = 1;
+        String exchangeName = "travel.topic";
+        String msg = reviewObjId + " " + status;
+        rabbitTemplate.convertAndSend(exchangeName, "review.official.inc", msg);
+
         // 返回该点评 id
         return review.getId();
     }
@@ -86,6 +97,13 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
         review.setIsDeleted(1);
         boolean result = this.updateById(review);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+
+        // 减少对应实体的点评数
+        Long reviewObjId = review.getReviewObjId();
+        int status = 2;
+        String exchangeName = "travel.topic";
+        String msg = reviewObjId + " " + status;
+        rabbitTemplate.convertAndSend(exchangeName, "review.official.dec", msg);
 
         return true;
     }
@@ -119,11 +137,13 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review>
         String content = reviewQueryRequest.getContent();
         Long userId = reviewQueryRequest.getUserId();
         Integer isDeleted = reviewQueryRequest.getIsDeleted();
+        Long reviewObjId = reviewQueryRequest.getReviewObjId();
 
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
             queryWrapper.like("content", searchText);
         }
+        queryWrapper.eq(ObjectUtils.isNotEmpty(reviewObjId), "review_obj_id", reviewObjId);
         queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);

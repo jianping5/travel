@@ -11,6 +11,7 @@ import com.travel.common.service.InnerUserService;
 import com.travel.reward.model.entity.RewardRecord;
 import com.travel.reward.service.RewardRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,7 +51,7 @@ public class SendRewardTask {
     /**
      * 每天执行一次（查询游记进行奖励颁发）
      */
-    @Scheduled(cron = "0 31 0 * * *")
+    @Scheduled(cron = "0 31 2 * * *")
     public void run() {
         // 分别查询文章和视频
         List<ArticleDTO> articleDTOList = innerTravelService.listArticleForReward();
@@ -82,15 +83,18 @@ public class SendRewardTask {
      */
     private void sendRewardWithArticle(List<ArticleDTO> articleDTOList) {
         // todo：奖励机制
-        Set<Long> articleUserIdSet = articleDTOList.stream().map(articleDTO -> articleDTO.getUserId()).collect(Collectors.toSet());
+        // 查询所有发布的文章对应的 [文章 id 集合]
+        Set<Long> articleIdSet = articleDTOList.stream().map(articleDTO -> articleDTO.getId()).collect(Collectors.toSet());
 
-        QueryWrapper<RewardRecord> rewardRecordQueryWrapper = new QueryWrapper<RewardRecord>();
-        rewardRecordQueryWrapper.in("user_id", articleUserIdSet);
+        // 根据 [文章 id 集合] 查询出所有的 奖励记录
+        QueryWrapper<RewardRecord> rewardRecordQueryWrapper = new QueryWrapper<>();
+        rewardRecordQueryWrapper.in(CollectionUtils.isNotEmpty(articleIdSet), "reward_obj_id", articleIdSet);
         rewardRecordQueryWrapper.eq("reward_obj_type", TypeConstant.ARTICLE.getTypeIndex());
         // [已经存在的奖励对象 id，奖励记录]  map
         Map<Long, List<RewardRecord>> articleIdRewardRecordMap = rewardRecordService.list(rewardRecordQueryWrapper).stream()
                 .collect(Collectors.groupingBy(RewardRecord::getRewardObjId));
 
+        // 遍历 [文章列表]
         articleDTOList.stream().forEach(articleDTO -> {
             Long userId = articleDTO.getUserId();
             Long id = articleDTO.getId();
@@ -98,17 +102,17 @@ public class SendRewardTask {
             Integer commentCount = articleDTO.getCommentCount();
             Integer favoriteCount = articleDTO.getFavoriteCount();
             Integer rewardCount = 0;
-            // 初始化 奖励记录
-            RewardRecord rewardRecord = new RewardRecord();
-            rewardRecord.setUserId(userId);
-            rewardRecord.setRewardObjType(TypeConstant.ARTICLE.getTypeIndex());
-            rewardRecord.setRewardObjId(id);
-            rewardRecord.setLikeCount(likeCount);
-            rewardRecord.setCommentCount(commentCount);
-            rewardRecord.setCollectCount(favoriteCount);
 
             // 之前未包含奖励记录
             if (!articleIdRewardRecordMap.containsKey(id)) {
+                // 初始化 奖励记录
+                RewardRecord rewardRecord = new RewardRecord();
+                rewardRecord.setUserId(userId);
+                rewardRecord.setRewardObjType(TypeConstant.ARTICLE.getTypeIndex());
+                rewardRecord.setRewardObjId(id);
+                rewardRecord.setLikeCount(likeCount);
+                rewardRecord.setCommentCount(commentCount);
+                rewardRecord.setCollectCount(favoriteCount);
                 rewardCount = computeReward(likeCount, commentCount, favoriteCount);
                 rewardRecord.setRewardCount(rewardCount);
                 rewardRecordService.save(rewardRecord);
@@ -141,7 +145,8 @@ public class SendRewardTask {
             updateTokenRequest.setUserId(userId);
             updateTokenRequest.setIsAdd(true);
             updateTokenRequest.setToken(rewardCount);
-            rabbitTemplate.convertAndSend(exchangeName, "token.add", updateTokenRequest);
+            String updateTokenRequestJson = gson.toJson(updateTokenRequest);
+            rabbitTemplate.convertAndSend(exchangeName, "token.add", updateTokenRequestJson);
 
         });
     }
@@ -152,15 +157,18 @@ public class SendRewardTask {
      */
     private void sendRewardWithVideo(List<VideoDTO> videoDTOList) {
         // todo：奖励机制
-        Set<Long> videoUserIdSet = videoDTOList.stream().map(videoDTO -> videoDTO.getUserId()).collect(Collectors.toSet());
+        // 查询所有发布的视频对应的 [视频 id 集合]
+        Set<Long> videoIdSet = videoDTOList.stream().map(videoDTO -> videoDTO.getId()).collect(Collectors.toSet());
 
+        // 根据 [视频 id 集合] 查询奖励记录
         QueryWrapper<RewardRecord> rewardRecordQueryWrapper = new QueryWrapper<>();
-        rewardRecordQueryWrapper.in("user_id", videoUserIdSet);
+        rewardRecordQueryWrapper.in(CollectionUtils.isNotEmpty(videoIdSet), "reward_obj_id", videoIdSet);
         rewardRecordQueryWrapper.eq("reward_obj_type", TypeConstant.VIDEO.getTypeIndex());
         // [已经存在的奖励对象 id，奖励记录]  map
         Map<Long, List<RewardRecord>> videoIdRewardRecordMap = rewardRecordService.list(rewardRecordQueryWrapper).stream()
                 .collect(Collectors.groupingBy(RewardRecord::getRewardObjId));
 
+        // 遍历 [视频列表]
         videoDTOList.stream().forEach(videoDTO -> {
             Long userId = videoDTO.getUserId();
             Long id = videoDTO.getId();
@@ -168,17 +176,18 @@ public class SendRewardTask {
             Integer commentCount = videoDTO.getCommentCount();
             Integer favoriteCount = videoDTO.getFavoriteCount();
             Integer rewardCount = 0;
-            // 初始化 奖励记录
-            RewardRecord rewardRecord = new RewardRecord();
-            rewardRecord.setUserId(userId);
-            rewardRecord.setRewardObjType(TypeConstant.VIDEO.getTypeIndex());
-            rewardRecord.setRewardObjId(id);
-            rewardRecord.setLikeCount(likeCount);
-            rewardRecord.setCommentCount(commentCount);
-            rewardRecord.setCollectCount(favoriteCount);
+
 
             // 之前未包含奖励记录
             if (!videoIdRewardRecordMap.containsKey(id)) {
+                // 初始化 奖励记录
+                RewardRecord rewardRecord = new RewardRecord();
+                rewardRecord.setUserId(userId);
+                rewardRecord.setRewardObjType(TypeConstant.VIDEO.getTypeIndex());
+                rewardRecord.setRewardObjId(id);
+                rewardRecord.setLikeCount(likeCount);
+                rewardRecord.setCommentCount(commentCount);
+                rewardRecord.setCollectCount(favoriteCount);
                 rewardCount = computeReward(likeCount, commentCount, favoriteCount);
                 rewardRecord.setRewardCount(rewardCount);
                 rewardRecordService.save(rewardRecord);
@@ -211,7 +220,8 @@ public class SendRewardTask {
             updateTokenRequest.setUserId(userId);
             updateTokenRequest.setIsAdd(true);
             updateTokenRequest.setToken(rewardCount);
-            rabbitTemplate.convertAndSend(exchangeName, "token.add", updateTokenRequest);
+            String updateTokenRequestJson = gson.toJson(updateTokenRequest);
+            rabbitTemplate.convertAndSend(exchangeName, "token.add", updateTokenRequestJson);
 
         });
     }

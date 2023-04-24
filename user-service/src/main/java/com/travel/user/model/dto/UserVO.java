@@ -37,7 +37,7 @@ public class UserVO implements Serializable {
     /**
      * 获赞数
      */
-    private Integer likeNum;
+    private Integer likeCount;
 
     /**
      * 浏览数

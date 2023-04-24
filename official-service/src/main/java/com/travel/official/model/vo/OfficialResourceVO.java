@@ -38,7 +38,7 @@ public class OfficialResourceVO implements Serializable {
     /**
      * 价格
      */
-    private Integer price;
+    private String price;
 
     /**
      * 标题

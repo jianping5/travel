@@ -1,7 +1,10 @@
 package com.travel.official.mq;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.gson.Gson;
 import com.travel.official.job.UpdateCache;
+import com.travel.official.model.entity.Official;
+import com.travel.official.service.OfficialService;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -23,6 +26,9 @@ public class MessageListener {
 
     @Resource
     private UpdateCache updateCache;
+
+    @Resource
+    private OfficialService officialService;
 
 
     @RabbitListener(bindings = @QueueBinding(
@@ -62,5 +68,33 @@ public class MessageListener {
 
         updateCache.executeOfficialLike(loginUserId, type, id, status);
     }
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = "travel.review"),
+            exchange = @Exchange(name = "travel.topic", type = ExchangeTypes.TOPIC),
+            key = "review.#"
+    ))
+    public void listenOfficialReviewQueue(String msg) {
+        String[] s = msg.split(" ");
+        Long id = Long.parseLong(s[0]);
+        int status = Integer.parseInt(s[1]);
+        UpdateWrapper<Official> officialUpdateWrapper = new UpdateWrapper<>();
+        officialUpdateWrapper.eq("id", id);
+
+        // 增加点评量
+        if (status == 1) {
+            officialUpdateWrapper.setSql("review_count = review_count + 1");
+        }
+
+        // 减少点评量
+        if (status == 2) {
+            officialUpdateWrapper.setSql("review_count = review_count - 1");
+        }
+
+        officialService.update(officialUpdateWrapper);
+
+
+    }
+
 
 }

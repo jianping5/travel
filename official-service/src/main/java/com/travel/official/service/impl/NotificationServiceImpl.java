@@ -19,6 +19,7 @@ import com.travel.official.model.vo.NotificationVO;
 import com.travel.official.service.NotificationService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,8 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         notification.setOfficialId(officialId);
         // 设置官方类型
         notification.setTypeId(typeId);
+        // todo：暂时随即注入浏览量
+        notification.setViewCount(RandomUtils.nextInt());
 
         // 添加到数据库中
         boolean saveResult = this.save(notification);
@@ -156,6 +159,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         String title = notificationQueryRequest.getTitle();
         String intro = notificationQueryRequest.getIntro();
         Long userId = notificationQueryRequest.getUserId();
+        Long officialId = notificationQueryRequest.getOfficialId();
         Integer resourceState = notificationQueryRequest.getNotificationState();
 
         // 拼接查询条件
@@ -166,6 +170,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         queryWrapper.like(StringUtils.isNotBlank(intro), "intro", intro);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(officialId), "official_id", officialId);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         queryWrapper.eq(ObjectUtils.isNotEmpty(resourceState), "notification_state", 0);

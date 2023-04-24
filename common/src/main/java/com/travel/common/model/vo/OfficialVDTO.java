@@ -2,15 +2,18 @@ package com.travel.common.model.vo;
 
 import com.travel.common.model.dto.official.OfficialDTO;
 import com.travel.common.model.dto.user.UserDTO;
+import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author jianping5
  * @createDate 4/4/2023 下午 6:17
  */
-public class OfficialVDTO {
+@Data
+public class OfficialVDTO implements Serializable {
     /**
      * 主键
      */
@@ -120,6 +123,11 @@ public class OfficialVDTO {
      * 官方详情（仅在详情页面传输）
      */
     private String detail;
+
+    /**
+     * 是否已点赞
+     */
+    private Integer isLiked;
 
     private static final long serialVersionUID = 1L;
 

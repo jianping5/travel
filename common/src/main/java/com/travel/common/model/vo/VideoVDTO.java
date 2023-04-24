@@ -115,6 +115,8 @@ public class VideoVDTO implements Serializable {
      */
     private Date updateTime;
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * 包装类转对象
      *

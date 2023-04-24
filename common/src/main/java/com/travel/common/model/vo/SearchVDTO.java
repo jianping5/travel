@@ -48,4 +48,6 @@ public class SearchVDTO implements Serializable {
      * 通用视图体 page
      */
     private Page<?> dataPage;
+
+    private static final long serialVersionUID = 1L;
 }

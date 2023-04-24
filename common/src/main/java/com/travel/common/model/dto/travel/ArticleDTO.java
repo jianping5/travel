@@ -66,7 +66,7 @@ public class ArticleDTO implements Serializable {
     /**
      * 文章详情 id
      */
-    private Long articleDetailId;
+    private Long detailId;
 
     /**
      * 文章详情

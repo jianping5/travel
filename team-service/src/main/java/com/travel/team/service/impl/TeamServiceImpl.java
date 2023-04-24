@@ -317,9 +317,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             messageDTO.setContent("该用户退出了您的团队（" + team.getTeamName() + "）");
 
             // todo：启动类，配置了 JSON，还需要使用 gson 序列化再加入队列中吗
+            String messageDTOJson = gson.toJson(messageDTO);
 
             // 发送该消息
-            rabbitTemplate.convertAndSend(exchangeName, "message.team", messageDTO);
+            rabbitTemplate.convertAndSend(exchangeName, "message.team", messageDTOJson);
 
         }
 
@@ -358,14 +359,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         List<Long> teamIdList = gson.fromJson(teamIdStr, new TypeToken<List<Long>>() {
         }.getType());
 
-        // 根据团队 id 列表获取团队名称
-        return teamIdList.stream().map(teamId -> {
-            QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
-            teamQueryWrapper.eq("id", teamId);
-            teamQueryWrapper.select("id", "team_name", "team_size", "team_state");
-            return this.getOne(teamQueryWrapper);
-        }).collect(Collectors.toList());
-
+        // todo：根据团队 id 列表获取团队名称
+        QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+        teamQueryWrapper.in(CollectionUtils.isNotEmpty(teamIdList),"id", teamIdList);
+        teamQueryWrapper.select("id", "team_name", "team_size", "team_state");
+        return this.list(teamQueryWrapper).stream().collect(Collectors.toList());
     }
 
     @Override

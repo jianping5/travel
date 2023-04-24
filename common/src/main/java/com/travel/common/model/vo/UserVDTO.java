@@ -34,7 +34,7 @@ public class UserVDTO implements Serializable {
     /**
      * 获赞数
      */
-    private Integer likeNum;
+    private Integer likeCount;
 
     /**
      * 关注数

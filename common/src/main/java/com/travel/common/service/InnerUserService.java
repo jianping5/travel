@@ -97,4 +97,12 @@ public interface InnerUserService{
      */
     boolean updateToken(Long userId, Integer token, boolean isAdd);
 
+    /**
+     * 更改用户的 typeId
+     * @param userId
+     * @param typeId
+     * @return
+     */
+    boolean changeUserTypeId(Long userId, int typeId);
+
 }

@@ -73,7 +73,7 @@ public class ArticleVDTO implements Serializable {
     /**
      * 文章详情 id
      */
-    private Long articleDetailId;
+    private Long detailId;
 
     /**
      * 地理位置

@@ -16,7 +16,7 @@
             <result property="signature" column="signature" jdbcType="VARCHAR"/>
             <result property="birth" column="birth" jdbcType="TIMESTAMP"/>
             <result property="sex" column="sex" jdbcType="TINYINT"/>
-            <result property="likeNum" column="like_num" jdbcType="INTEGER"/>
+            <result property="likeCount" column="like_count" jdbcType="INTEGER"/>
             <result property="viewCount" column="view_count" jdbcType="INTEGER"/>
             <result property="followCount" column="follow_count" jdbcType="INTEGER"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
@@ -27,7 +27,7 @@
         id,user_id,user_account,
         user_password,user_name,user_avatar,
         phone,email,signature,
-        birth,sex,like_num,
+        birth,sex,like_count,
         view_count,follow_count,create_time,
         update_time
     </sql>

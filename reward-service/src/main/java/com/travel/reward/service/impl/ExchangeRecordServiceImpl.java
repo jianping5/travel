@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.model.dto.user.UserDTO;
+import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerOfficialService;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
+import com.travel.common.utils.UserHolder;
 import com.travel.reward.mapper.ExchangeRecordMapper;
 import com.travel.reward.model.dto.ExchangeRecordQueryRequest;
 import com.travel.reward.model.entity.ExchangeRecord;
@@ -50,23 +52,28 @@ public class ExchangeRecordServiceImpl extends ServiceImpl<ExchangeRecordMapper,
         String sortField = exchangeRecordQueryRequest.getSortField();
         String sortOrder = exchangeRecordQueryRequest.getSortOrder();
         Long id = exchangeRecordQueryRequest.getId();
-        Long userId = exchangeRecordQueryRequest.getUserId();
+
+        // 获取当前登录用户
+        User loginUser = UserHolder.getUser();
+        Long userId = loginUser.getId();
 
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
             queryWrapper.like("certificate", searchText);
         }
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
+
 
         // 若为官方，则查询当前官方下的兑换记录
         Integer isOfficial = exchangeRecordQueryRequest.getIsOfficial();
-        if (isOfficial.equals(1)) {
+        if (isOfficial == 1) {
             // 根据当前用户 id 从周边表获取 [周边 id 列表]
             List<Long> derivativeIdList = innerOfficialService.listDerivativeId(userId);
 
             // 构造器 in [周边 id 列表]
-            queryWrapper.in("derivative_id", derivativeIdList);
+            queryWrapper.in(CollectionUtils.isNotEmpty(derivativeIdList), "derivative_id", derivativeIdList);
+        } else {
+            queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
         }
 
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),

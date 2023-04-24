@@ -28,7 +28,7 @@ public class PageRequest {
     /**
      * 排序字段（String SORT_ORDER_ALL = "all";）
      */
-    @ApiModelProperty(value = "排序字段（综合排序：all）")
+    @ApiModelProperty(value = "排序字段（综合排序：all）", required = true)
     private String sortField;
 
     /**

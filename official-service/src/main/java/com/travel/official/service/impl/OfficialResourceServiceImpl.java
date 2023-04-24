@@ -21,6 +21,7 @@ import com.travel.official.model.vo.OfficialResourceVO;
 import com.travel.official.service.OfficialResourceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RSet;
@@ -83,6 +84,9 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         officialResource.setOfficialId(officialId);
         // 设置官方类型
         officialResource.setTypeId(typeId);
+
+        // todo：暂时随机注入浏览量
+        officialResource.setViewCount(RandomUtils.nextInt());
 
         // 添加到数据库中
         boolean saveResult = this.save(officialResource);
@@ -185,6 +189,7 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         String title = officialResourceQueryRequest.getTitle();
         String intro = officialResourceQueryRequest.getIntro();
         Long userId = officialResourceQueryRequest.getUserId();
+        Long officialId = officialResourceQueryRequest.getOfficialId();
         Integer resourceState = officialResourceQueryRequest.getResourceState();
 
         // 拼接查询条件
@@ -195,6 +200,7 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         queryWrapper.like(StringUtils.isNotBlank(intro), "intro", intro);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(officialId), "official_id", officialId);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         queryWrapper.eq(ObjectUtils.isNotEmpty(resourceState), "resource_state", 0);
@@ -254,7 +260,7 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         // 获取 map（官方资源 id，官方资源详情 List）
         Set<Long> officialResourceIdSet = officialResourceList.stream().map(OfficialResource::getId).collect(Collectors.toSet());
         QueryWrapper<ResourceDetail> resourceDetailQueryWrapper = new QueryWrapper<>();
-        resourceDetailQueryWrapper.in("official_resource_id", officialResourceIdSet);
+        resourceDetailQueryWrapper.in(CollectionUtils.isNotEmpty(officialResourceIdSet), "official_resource_id", officialResourceIdSet);
         List<ResourceDetail> resourceDetailList = resourceDetailService.list(resourceDetailQueryWrapper);
         Map<Long, List<ResourceDetail>> officialResourceIdDetailListMap = resourceDetailList.stream().collect(Collectors.groupingBy(ResourceDetail::getOfficialResourceId));
 

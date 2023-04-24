@@ -1,14 +1,13 @@
 package com.travel.travel.model.vo;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.travel.travel.model.entity.Article;
-import com.travel.travel.model.entity.ArticleDetail;
 import com.travel.travel.model.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author zgy
@@ -93,6 +92,17 @@ public class CommentVO implements Serializable {
      * 是否已点赞
      */
     private Integer isLiked;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 
     private static final long serialVersionUID = 1L;
 

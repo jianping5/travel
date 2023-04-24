@@ -18,6 +18,7 @@ import com.travel.official.model.entity.Official;
 import com.travel.official.model.vo.DerivativeVO;
 import com.travel.official.service.DerivativeService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,10 +39,10 @@ public class DerivativeController {
 
     /**
      * 添加周边
-     *
      * @param derivativeAddRequest
      * @return
      */
+    @ApiOperation(value = "添加周边")
     @PostMapping("/add")
     public BaseResponse<Long> addDerivative(@RequestBody DerivativeAddRequest derivativeAddRequest) {
         // 校验请求体
@@ -70,6 +71,7 @@ public class DerivativeController {
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "下架周边")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteDerivative(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -102,27 +104,30 @@ public class DerivativeController {
      * @param derivativeUpdateRequest
      * @return
      */
+    @ApiOperation(value = "更新周边")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateDerivative(@RequestBody DerivativeUpdateRequest derivativeUpdateRequest) {
-        // 校验团队更新请求体
+        // 校验周边更新请求体
         if (derivativeUpdateRequest == null || derivativeUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 将团队更新请求体的内容赋值给 团队
-        Derivative Derivative = new Derivative();
-        BeanUtils.copyProperties(derivativeUpdateRequest, Derivative);
+        // 将周边更新请求体的内容赋值给 周边
+        Derivative derivative = new Derivative();
+        BeanUtils.copyProperties(derivativeUpdateRequest, derivative);
 
         // 参数校验
-        derivativeService.validDerivative(Derivative, false);
+        derivativeService.validDerivative(derivative, false);
         long id = derivativeUpdateRequest.getId();
 
         // 判断是否存在
-        Derivative oldPost = derivativeService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+        Derivative oldDerivative = derivativeService.getById(id);
+        ThrowUtils.throwIf(oldDerivative == null, ErrorCode.NOT_FOUND_ERROR);
 
-        // 更新团队
-        derivativeService.updateDerivative(Derivative);
+        // 更新周边
+        User loginUser = UserHolder.getUser();
+        derivative.setUserId(loginUser.getId());
+        derivativeService.updateDerivative(derivative);
 
         return ResultUtils.success(true);
     }
@@ -134,6 +139,7 @@ public class DerivativeController {
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取周边详情")
     @GetMapping("/get/vo")
     public BaseResponse<DerivativeVO> getDerivativeVOById(long id) {
         // 校验 id
@@ -154,6 +160,7 @@ public class DerivativeController {
      * @param derivativeQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<DerivativeVO>> listDerivativeVOByPage(@RequestBody DerivativeQueryRequest derivativeQueryRequest) {
         if (derivativeQueryRequest == null) {
@@ -179,6 +186,7 @@ public class DerivativeController {
      * @param derivativeQueryRequest
      * @return
      */
+    @ApiOperation(value = "获取推荐周边（大众化推荐）")
     @PostMapping("/rcmd")
     public BaseResponse<List<DerivativeVO>> listRcmdDerivativeVO(@RequestBody DerivativeQueryRequest derivativeQueryRequest) {
         if (derivativeQueryRequest == null) {
@@ -197,8 +205,9 @@ public class DerivativeController {
     }
 
     /**
-     * 获取周边
+     * 获取周边（购买 or 兑换）
      */
+    @ApiOperation(value = "获取周边（购买 or 兑换）")
     @PostMapping("/obtain")
     public BaseResponse<Official> obtainDerivative(@RequestBody DerivativeObtainRequest derivativeObtainRequest) {
         if (derivativeObtainRequest == null) {
@@ -206,9 +215,8 @@ public class DerivativeController {
         }
 
         Long id = derivativeObtainRequest.getId();
-        Integer obtainMethod = derivativeObtainRequest.getObtainMethod();
 
-        Official official = derivativeService.obtainDerivative(id, obtainMethod);
+        Official official = derivativeService.obtainDerivative(id);
 
         return ResultUtils.success(official);
     }

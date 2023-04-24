@@ -7,6 +7,8 @@ import com.travel.common.common.ResultUtils;
 import com.travel.common.constant.TypeConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
+import com.travel.common.model.entity.User;
+import com.travel.common.utils.UserHolder;
 import com.travel.official.model.dto.official.OfficialAddRequest;
 import com.travel.official.model.dto.official.OfficialLikeRequest;
 import com.travel.official.model.dto.official.OfficialQueryRequest;
@@ -90,6 +92,8 @@ public class OfficialController {
         ThrowUtils.throwIf(oldOfficial == null, ErrorCode.NOT_FOUND_ERROR);
 
         // 更新团队
+        User loginUser = UserHolder.getUser();
+        official.setUserId(loginUser.getId());
         officialService.updateOfficial(official);
 
         return ResultUtils.success(true);

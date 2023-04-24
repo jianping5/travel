@@ -25,6 +25,7 @@ import com.travel.official.service.OfficialDetailService;
 import com.travel.official.service.OfficialService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RList;
@@ -74,14 +75,11 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
 
         // 获取官方详情
         String detail = official.getDetail();
-        String officialName = official.getOfficialName();
 
-        // todo: 封面是否一定要上传？
-        String coverUrl = official.getCoverUrl();
 
         if (add) {
             // 官方详情不能为空
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(detail, officialName), ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(StringUtils.isAnyBlank(detail), ErrorCode.PARAMS_ERROR);
         }
 
 
@@ -91,6 +89,9 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
     @Override
     public Long addOfficial(Official official) {
         // 完善对应官方内容
+
+        // todo：暂时随机注入浏览量
+        official.setViewCount(RandomUtils.nextInt());
         boolean update = this.updateById(official);
         ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR);
 
@@ -107,9 +108,10 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         TagAddRequest tagAddRequest = new TagAddRequest();
         tagAddRequest.setTagList(official.getTag());
         tagAddRequest.setTagType(TypeConstant.OFFICIAL.getTypeIndex());
+        String tagAddRequestJson = gson.toJson(tagAddRequest);
         String exchangeName = "travel.topic";
         // todo：如何确保消息正确地被消费？
-        rabbitTemplate.convertAndSend(exchangeName, "tag.official", tagAddRequest);
+        rabbitTemplate.convertAndSend(exchangeName, "tag.official", tagAddRequestJson);
 
         return official.getId();
     }
@@ -305,7 +307,7 @@ public class OfficialServiceImpl extends ServiceImpl<OfficialMapper, Official>
         Set<Long> officialIdSet = officialList.stream().map(official -> official.getId()).collect(Collectors.toSet());
         QueryWrapper<OfficialDetail> officialDetailQueryWrapper = new QueryWrapper<>();
         officialDetailQueryWrapper.select("id", "official_id");
-        officialDetailQueryWrapper.in("official_id", officialIdSet);
+        officialDetailQueryWrapper.in(CollectionUtils.isNotEmpty(officialIdSet),"official_id", officialIdSet);
         List<OfficialDetail> officialDetailList = officialDetailService.list(officialDetailQueryWrapper);
         Map<Long, List<OfficialDetail>> officialIdDetailListMap = officialDetailList.stream().collect(Collectors.groupingBy(OfficialDetail::getOfficialId));
 

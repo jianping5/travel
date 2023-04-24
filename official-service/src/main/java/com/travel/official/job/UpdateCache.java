@@ -181,9 +181,9 @@ public class UpdateCache {
         updateWrapper.eq("id", id);
 
         // 点赞
-        if (status == 0) {
+        if (status == 1) {
             updateWrapper.setSql("like_count = like_count + 1");
-        } else if (status == 1) {
+        } else if (status == 2) {
             // 取消点赞
             updateWrapper.setSql("like_count = like_count - 1");
         }

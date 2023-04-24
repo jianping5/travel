@@ -25,7 +25,8 @@
     {
       "name": "spring.mail.port",
       "type": "java.lang.Integer",
-      "sourceType": "com.travel.user.model.domain.EmailSender"
+      "sourceType": "com.travel.user.model.domain.EmailSender",
+      "defaultValue": 0
     },
     {
       "name": "spring.mail.username",

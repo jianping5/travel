@@ -14,6 +14,8 @@ import com.travel.official.model.dto.review.ReviewQueryRequest;
 import com.travel.official.model.entity.Review;
 import com.travel.official.model.vo.ReviewVO;
 import com.travel.official.service.ReviewService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,22 +25,25 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 
 /**
+ * 点评 Controller
  * @author jianping5
  * @createDate 6/4/2023 下午 8:25
  */
 @RestController
 @RequestMapping("/review")
+@Api(tags = "点评 Controller")
 public class ReviewController {
     
     @Resource
     private ReviewService reviewService;
     
     /**
-     * 添加资讯通知
+     * 添加点评
      *
      * @param reviewAddRequest
      * @return
      */
+    @ApiOperation(value = "添加点评")
     @PostMapping("/add")
     public BaseResponse<Long> addReview(@RequestBody ReviewAddRequest reviewAddRequest) {
         // 校验请求体
@@ -62,6 +67,7 @@ public class ReviewController {
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "删除点评")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteReview(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -94,6 +100,7 @@ public class ReviewController {
      * @param reviewQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<ReviewVO>> listReviewVOByPage(@RequestBody ReviewQueryRequest reviewQueryRequest) {
         if (reviewQueryRequest == null) {

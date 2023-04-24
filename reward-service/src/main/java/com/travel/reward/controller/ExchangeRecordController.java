@@ -10,6 +10,8 @@ import com.travel.reward.model.dto.ExchangeRecordQueryRequest;
 import com.travel.reward.model.entity.ExchangeRecord;
 import com.travel.reward.model.vo.ExchangeRecordVO;
 import com.travel.reward.service.ExchangeRecordService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +24,8 @@ import javax.annotation.Resource;
  * @createDate 15/4/2023 下午 7:50
  */
 @RestController
-@RequestMapping("/reward-exchange")
+@RequestMapping("/exchange")
+@Api(tags = "兑换记录 Controller")
 public class ExchangeRecordController {
 
     @Resource
@@ -34,6 +37,7 @@ public class ExchangeRecordController {
      * @param exchangeRecordQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/vo/page/list")
     public BaseResponse<Page<ExchangeRecordVO>> listExchangeVOByPage(@RequestBody ExchangeRecordQueryRequest exchangeRecordQueryRequest) {
         if (exchangeRecordQueryRequest == null) {

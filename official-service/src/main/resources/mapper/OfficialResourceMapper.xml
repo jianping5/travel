@@ -9,7 +9,7 @@
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="officialId" column="official_id" jdbcType="BIGINT"/>
             <result property="coverUrl" column="cover_url" jdbcType="VARCHAR"/>
-            <result property="price" column="price" jdbcType="INTEGER"/>
+            <result property="price" column="price" jdbcType="VARCHAR"/>
             <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="typeId" column="type_id" jdbcType="INTEGER"/>
             <result property="intro" column="intro" jdbcType="VARCHAR"/>

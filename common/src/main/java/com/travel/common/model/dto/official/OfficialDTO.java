@@ -117,6 +117,11 @@ public class OfficialDTO implements Serializable {
      */
     private String detail;
 
+    /**
+     * 是否已点赞
+     */
+    private Integer isLiked;
+
     private static final long serialVersionUID = 1L;
 
 }

@@ -18,7 +18,7 @@ public class OfficialAddRequest implements Serializable {
     /**
      * 官方 id
      */
-    @ApiModelProperty(value = "官方 id")
+    @ApiModelProperty(value = "官方 id", required = true)
     private Long id;
 
     /**

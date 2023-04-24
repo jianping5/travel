@@ -1,5 +1,4 @@
 create database travel_team;
-
 use travel_team;
 
 create table team

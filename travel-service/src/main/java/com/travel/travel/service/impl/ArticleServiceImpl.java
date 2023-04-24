@@ -12,20 +12,18 @@ import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
-import com.travel.travel.model.vo.ArticleVO;
+import com.travel.travel.mapper.ArticleMapper;
 import com.travel.travel.model.entity.Article;
 import com.travel.travel.model.entity.ArticleDetail;
 import com.travel.travel.model.request.ArticleQueryRequest;
+import com.travel.travel.model.vo.ArticleVO;
 import com.travel.travel.service.ArticleDetailService;
 import com.travel.travel.service.ArticleService;
-import com.travel.travel.mapper.ArticleMapper;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
-import org.springframework.amqp.rabbit.annotation.RabbitHandler;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -169,7 +167,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         // 获取 map（官方 id，官方详情 List）
         Set<Long> articleIdSet = articleList.stream().map(article -> article.getId()).collect(Collectors.toSet());
         QueryWrapper<ArticleDetail> articleDetailQueryWrapper = new QueryWrapper<>();
-        articleDetailQueryWrapper.in("article_id", articleIdSet);
+        articleDetailQueryWrapper.in(org.apache.commons.collections4.CollectionUtils.isNotEmpty(articleIdSet), "article_id", articleIdSet);
         List<ArticleDetail> articleDetailList = articleDetailService.list(articleDetailQueryWrapper);
         Map<Long, List<ArticleDetail>> articleIdDetailListMap = articleDetailList.stream().collect(Collectors.groupingBy(ArticleDetail::getArticleId));
 

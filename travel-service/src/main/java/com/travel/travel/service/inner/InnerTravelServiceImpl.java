@@ -1,6 +1,7 @@
 package com.travel.travel.service.inner;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -75,65 +76,28 @@ public class InnerTravelServiceImpl implements InnerTravelService {
 
     @Override
     public boolean updateTravelByTeamId(Long userId, Long teamId) {
-        // 文章游记查询
-        QueryWrapper<Article> articleQueryWrapper = new QueryWrapper<>();
-        articleQueryWrapper.eq("team_id", teamId);
-        articleQueryWrapper.select("id");
+        UpdateWrapper<Article> articleUpdateWrapper = new UpdateWrapper<>();
+        articleUpdateWrapper.eq("team_id", teamId);
+        articleUpdateWrapper.set("team_id", -1);
 
-        // 视频游记查询
-        QueryWrapper<Video> videoQueryWrapper = new QueryWrapper<>();
-        videoQueryWrapper.eq("team_id", teamId);
-        videoQueryWrapper.select("id");
+        UpdateWrapper<Video> videoUpdateWrapper = new UpdateWrapper<>();
+        videoUpdateWrapper.eq("team_id", teamId);
+        videoUpdateWrapper.set("team_id", -1);
 
         // 更新所有用户的游记
         if (userId == null) {
-            List<Article> articleList = articleService.list(articleQueryWrapper);
-            List<Video> videoList = videoService.list(videoQueryWrapper);
-
-            if (CollectionUtils.isNotEmpty(articleList)) {
-                // 将文章游记的文章 id 移到回收站
-                // todo：出错则抛异常（考虑分布式事务）
-                boolean update = articleService.updateBatchById(articleList);
-                if (update == false) {
-                    throw new RuntimeException(ErrorCode.OPERATION_ERROR.getMessage());
-                }
-            }
-
-            if (CollectionUtils.isNotEmpty(videoList)) {
-                // 将视频游记的文章 id 移到回收站
-                // todo：出错则抛异常
-                boolean update = videoService.updateBatchById(videoList);
-                if (update == false) {
-                    throw new RuntimeException(ErrorCode.OPERATION_ERROR.getMessage());
-                }
-            }
+            articleService.update(articleUpdateWrapper);
+            videoService.update(videoUpdateWrapper);
         }
 
         // 更新指定用户的游记
         if (userId != null) {
-            articleQueryWrapper.eq("user_id", userId);
-            videoQueryWrapper.eq("user_id", userId);
-            List<Article> articleList = articleService.list(articleQueryWrapper);
-            List<Video> videoList = videoService.list(videoQueryWrapper);
-
-            if (CollectionUtils.isNotEmpty(articleList)) {
-                // 将文章游记的文章 id 移到回收站
-                // todo：出错则抛异常（考虑分布式事务）
-                boolean update = articleService.updateBatchById(articleList);
-                if (update == false) {
-                    throw new RuntimeException(ErrorCode.OPERATION_ERROR.getMessage());
-                }
-            }
-
-            if (CollectionUtils.isNotEmpty(videoList)) {
-                // 将视频游记的文章 id 移到回收站
-                // todo：出错则抛异常
-                boolean update = videoService.updateBatchById(videoList);
-                if (update == false) {
-                    throw new RuntimeException(ErrorCode.OPERATION_ERROR.getMessage());
-                }
-            }
+            articleUpdateWrapper.eq("user_id", userId);
+            videoUpdateWrapper.eq("user_id", userId);
+            articleService.update(articleUpdateWrapper);
+            videoService.update(videoUpdateWrapper);
         }
+
         return true;
     }
 
@@ -203,17 +167,23 @@ public class InnerTravelServiceImpl implements InnerTravelService {
             // 构建 ES (id, title) 的 map
             HashMap<Long, String> articleIdTitleMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    articleIdTitleMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("title").get(0)));
+            searchHitList.stream().forEach(searchHit -> {
+                List<String> titleList = searchHit.getHighlightField("title");
+                if (CollectionUtils.isNotEmpty(titleList)) {
+                    articleIdTitleMap.put(searchHit.getContent().getId(), titleList.get(0));
+                } else {
+                    articleIdTitleMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // todo: 若 sortField 为 all，说明走综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Article> articleQueryWrapper = new QueryWrapper<>();
-            articleQueryWrapper.in("id", articleIdTitleMap.keySet());
+            articleQueryWrapper.in(CollectionUtils.isNotEmpty(articleIdTitleMap.keySet()), "id", articleIdTitleMap.keySet());
             if ("all".equals(sortField)) {
                 articleQueryWrapper.last("order by 3*like_count+2*comment_count+3*favorite_count+2*view_count desc");
             } else {
-                articleQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                articleQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             List<Article> articleList = articleMapper.selectList(articleQueryWrapper);
 
@@ -228,7 +198,9 @@ public class InnerTravelServiceImpl implements InnerTravelService {
                     if (articleIdTitleMap.containsKey(articleId)) {
                         // 将 article 的非高亮字段赋值为高亮的值
                         Article article = idArticleMap.get(articleId).get(0);
-                        article.setTitle(highLightTitle);
+                        if (StringUtils.isNotEmpty(highLightTitle)) {
+                            article.setTitle(highLightTitle);
+                        }
                         resourceList.add(article);
                     } else {
                         // 从 es 清空 db 已物理删除的数据
@@ -310,17 +282,23 @@ public class InnerTravelServiceImpl implements InnerTravelService {
             // 构建 ES (id, title) 的 map
             HashMap<Long, String> videoIdTitleMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    videoIdTitleMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("title").get(0)));
+            searchHitList.stream().forEach(searchHit ->{
+                List<String> titleList = searchHit.getHighlightField("title");
+                if (titleList != null) {
+                    videoIdTitleMap.put(searchHit.getContent().getId(), titleList.get(0));
+                } else {
+                    videoIdTitleMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // todo: 若 sortField 为 all，说明走综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Video> videoQueryWrapper = new QueryWrapper<>();
-            videoQueryWrapper.in("id", videoIdTitleMap.keySet());
+            videoQueryWrapper.in(CollectionUtils.isNotEmpty(videoIdTitleMap.keySet()), "id", videoIdTitleMap.keySet());
             if ("all".equals(sortField)) {
                 videoQueryWrapper.last("order by 3*like_count+2*comment_count+3*favorite_count+2*view_count desc");
             } else {
-                videoQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                videoQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             List<Video> videoList = videoMapper.selectList(videoQueryWrapper);
 
@@ -335,7 +313,9 @@ public class InnerTravelServiceImpl implements InnerTravelService {
                     if (videoIdTitleMap.containsKey(videoId)) {
                         // 将 article 的非高亮字段赋值为高亮的值
                         Video video = idVideoMap.get(videoId).get(0);
-                        video.setTitle(highLightTitle);
+                        if (StringUtils.isNotEmpty(highLightTitle)) {
+                            video.setTitle(highLightTitle);
+                        }
                         resourceList.add(video);
                     } else {
                         // 从 es 清空 db 已物理删除的数据
@@ -437,7 +417,11 @@ public class InnerTravelServiceImpl implements InnerTravelService {
             String articleTag = article.getTag();
             List<String> articleTagList = gson.fromJson(articleTag, new TypeToken<List<String>>() {}.getType());
             // 计算两者的相似分数
-            long distance = AlgorithmUtils.minDistance(tagList, articleTagList);
+            long distance = 0;
+            if (CollectionUtils.isNotEmpty(tagList) && CollectionUtils.isNotEmpty(articleTagList)) {
+                AlgorithmUtils.minDistance(tagList, articleTagList);
+            }
+
             list.add(new Pair<>(article.getId(), distance));
         }
 
@@ -479,7 +463,11 @@ public class InnerTravelServiceImpl implements InnerTravelService {
             String videoTag = video.getTag();
             List<String> videoTagList = gson.fromJson(videoTag, new TypeToken<List<String>>() {}.getType());
             // 计算两者的相似分数
-            long distance = AlgorithmUtils.minDistance(tagList, videoTagList);
+            long distance = 0;
+            if (CollectionUtils.isNotEmpty(tagList) && CollectionUtils.isNotEmpty(videoList)) {
+                distance = AlgorithmUtils.minDistance(tagList, videoTagList);
+            }
+
             list.add(new Pair<>(video.getId(), distance));
         }
 

@@ -7,6 +7,8 @@ import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
 import com.travel.reward.model.entity.RewardTask;
 import com.travel.reward.service.RewardTaskService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,7 +22,8 @@ import java.util.List;
  * @createDate 15/4/2023 下午 7:50
  */
 @RestController
-@RequestMapping("/reward-task")
+@RequestMapping("/task")
+@Api(tags = "奖励任务 Controller")
 public class RewardTaskController {
 
     @Resource
@@ -32,6 +35,7 @@ public class RewardTaskController {
      * @param taskType
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @GetMapping("/list")
     public BaseResponse<List<RewardTask>> listTaskVO(@RequestParam Integer taskType) {
         if (taskType == null || taskType < 0) {

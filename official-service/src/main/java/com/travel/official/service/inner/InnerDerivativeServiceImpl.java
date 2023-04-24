@@ -13,6 +13,7 @@ import com.travel.official.model.entity.Derivative;
 import com.travel.official.model.vo.DerivativeVO;
 import com.travel.official.service.DerivativeService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -103,17 +104,23 @@ public class InnerDerivativeServiceImpl implements InnerDerivativeService {
             // 构建 ES (id, derivativeName) 的 map
             HashMap<Long, String> derivativeIdNameMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    derivativeIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("derivativeName").get(0)));
+            searchHitList.stream().forEach(searchHit -> {
+                List<String> derivativeNameList = searchHit.getHighlightField("derivativeName");
+                if (CollectionUtils.isNotEmpty(derivativeNameList)) {
+                    derivativeIdNameMap.put(searchHit.getContent().getId(), derivativeNameList.get(0));
+                } else {
+                    derivativeIdNameMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // todo: 若 sortField 为 all，说明走综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Derivative> derivativeQueryWrapper = new QueryWrapper<>();
-            derivativeQueryWrapper.in("id", derivativeIdNameMap.keySet());
+            derivativeQueryWrapper.in(CollectionUtils.isNotEmpty(derivativeIdNameMap.keySet()), "id", derivativeIdNameMap.keySet());
             if ("all".equals(sortField)) {
                 derivativeQueryWrapper.last("order by 5*obtain_count+3*view_count desc");
             } else {
-                derivativeQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                derivativeQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             List<Derivative> derivativeList = derivativeMapper.selectList(derivativeQueryWrapper);
 
@@ -128,7 +135,9 @@ public class InnerDerivativeServiceImpl implements InnerDerivativeService {
                     if (idDerivativeMap.containsKey(derivativeId)) {
                         // 将 derivative 的非高亮字段赋值为高亮的值
                         Derivative derivative = idDerivativeMap.get(derivativeId).get(0);
-                        derivative.setDerivativeName(highLightDerivativeName);
+                        if (StringUtils.isNotEmpty(highLightDerivativeName)) {
+                            derivative.setDerivativeName(highLightDerivativeName);
+                        }
                         resourceList.add(derivative);
                     } else {
                         // 从 es 清空 db 已物理删除的数据

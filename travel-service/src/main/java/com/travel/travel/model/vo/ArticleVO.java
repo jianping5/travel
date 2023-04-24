@@ -1,7 +1,6 @@
 package com.travel.travel.model.vo;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.travel.travel.model.entity.Article;
 import com.travel.travel.model.entity.ArticleDetail;
 import lombok.AllArgsConstructor;
@@ -120,6 +119,11 @@ public class ArticleVO implements Serializable {
      * 是否已关注
      */
     private Integer isFollowed;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 
     /**
      * 更新时间

@@ -23,6 +23,7 @@ import com.travel.user.service.UserInfoService;
 import com.travel.user.service.UserLikeService;
 import com.travel.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -83,7 +84,7 @@ public class InnerUserServiceImpl implements InnerUserService {
     @Override
     public List<UserDTO> listByIds(Set<Long> userIdList) {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("user_id", userIdList);
+        queryWrapper.in(CollectionUtils.isNotEmpty(userIdList), "user_id", userIdList);
         queryWrapper.select("user_id", "user_name", "user_avatar");
         List<UserInfo> userInfoList = userInfoService.list(queryWrapper);
         List<UserDTO> userDTOList = userInfoList.stream()
@@ -222,7 +223,7 @@ public class InnerUserServiceImpl implements InnerUserService {
         List<Long> userIdList = userList.stream().map(user -> user.getId()).collect(Collectors.toList());
 
         QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
-        userInfoQueryWrapper.in("user_id", userIdList);
+        userInfoQueryWrapper.in(CollectionUtils.isNotEmpty(userIdList), "user_id", userIdList);
         userInfoQueryWrapper.select("user_id", "user_name", "user_avatar");
         Map<Long, List<UserInfo>> userIdUserInfoMap = userInfoService.list(userInfoQueryWrapper).stream().collect(Collectors.groupingBy(UserInfo::getUserId));
 
@@ -262,8 +263,8 @@ public class InnerUserServiceImpl implements InnerUserService {
         // 构建 bool 查询器
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 状态正常的
-        boolQueryBuilder.filter(QueryBuilders.termQuery("userState", 0));
+        // // 状态正常的
+        // boolQueryBuilder.filter(QueryBuilders.termQuery("userState", 0));
 
         // 按关键词检索
         if (StringUtils.isNotBlank(searchText)) {
@@ -295,17 +296,23 @@ public class InnerUserServiceImpl implements InnerUserService {
             // 构建 ES (id, userName) 的 map
             HashMap<Long, String> userInfoIdNameMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    userInfoIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("userName").get(0)));
+            searchHitList.stream().forEach(searchHit -> {
+                List<String> userNameList = searchHit.getHighlightField("userName");
+                if (CollectionUtils.isNotEmpty(userNameList)) {
+                    userInfoIdNameMap.put(searchHit.getContent().getId(), userNameList.get(0));
+                } else {
+                    userInfoIdNameMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // todo：注意 sortField 若为 all，则表示综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
-            userInfoQueryWrapper.in("id", userInfoIdNameMap.keySet());
+            userInfoQueryWrapper.in(CollectionUtils.isNotEmpty(userInfoIdNameMap.keySet()), "id", userInfoIdNameMap.keySet());
             if ("all".equals(sortField)) {
-                userInfoQueryWrapper.last("order by 3*like_num+3*view_count+4*follow_count desc");
+                userInfoQueryWrapper.last("order by 3*like_count+3*view_count+4*follow_count desc");
             } else {
-                userInfoQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                userInfoQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             List<UserInfo> userInfoList = userInfoMapper.selectList(userInfoQueryWrapper);
 
@@ -320,7 +327,9 @@ public class InnerUserServiceImpl implements InnerUserService {
                     if (idTeamMap.containsKey(userInfoId)) {
                         // 将 team 的非高亮字段赋值为高亮的值
                         UserInfo userInfo = idTeamMap.get(userInfoId).get(0);
-                        userInfo.setUserName(highLightTeamName);
+                        if (StringUtils.isNotEmpty(highLightTeamName)) {
+                            userInfo.setUserName(highLightTeamName);
+                        }
                         resourceList.add(userInfo);
                     } else {
                         // 从 es 清空 db 已物理删除的数据
@@ -385,5 +394,16 @@ public class InnerUserServiceImpl implements InnerUserService {
         }else {
             return false;
         }
+    }
+
+    @Override
+    public boolean changeUserTypeId(Long userId, int typeId) {
+        // 更新对应用户的 typeId
+        UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
+        userUpdateWrapper.eq("id", userId);
+        userUpdateWrapper.set("type_id", typeId);
+        return userService.update(userUpdateWrapper);
+
+        // todo：需要更新缓存中的个人基本信息吗？
     }
 }

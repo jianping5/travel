@@ -5,6 +5,8 @@ import com.travel.common.common.BaseResponse;
 import com.travel.common.common.ResultUtils;
 import com.travel.data.model.entity.Tag;
 import com.travel.data.service.TagService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,12 +19,18 @@ import java.util.List;
  * @createDate 13/4/2023 下午 6:55
  */
 @RestController
-@RequestMapping("/data-tag")
+@RequestMapping("/tag")
+@Api(tags = "标签 Controller")
 public class TagController {
 
     @Resource
     private TagService tagService;
 
+    /**
+     * 获取默认标签
+     * @return
+     */
+    @ApiOperation(value = "获取默认标签")
     @GetMapping("/list")
     public BaseResponse<List<Tag>> listDefaultTag() {
         QueryWrapper<Tag> tagQueryWrapper = new QueryWrapper<>();

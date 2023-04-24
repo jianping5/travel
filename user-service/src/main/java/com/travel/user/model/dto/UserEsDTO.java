@@ -36,12 +36,7 @@ public class UserEsDTO implements Serializable {
     /**
      * 用户名
      */
-    private Long userName;
-
-    /**
-     * 用户状态（0：正常 1：异常）
-     */
-    private Integer userState;
+    private String userName;
 
     /**
      * 创建时间

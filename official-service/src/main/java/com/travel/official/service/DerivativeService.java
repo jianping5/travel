@@ -79,9 +79,8 @@ public interface DerivativeService extends IService<Derivative> {
     /**
      * 获取周边
      * @param id
-     * @param obtainMethod
      * @return
      */
-    Official obtainDerivative(Long id, Integer obtainMethod);
+    Official obtainDerivative(Long id);
 
 }

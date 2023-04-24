@@ -15,17 +15,21 @@ import com.travel.official.model.dto.officialResource.OfficialResourceUpdateRequ
 import com.travel.official.model.entity.OfficialResource;
 import com.travel.official.model.vo.OfficialResourceVO;
 import com.travel.official.service.OfficialResourceService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
 /**
+ * 官方资源 Controller
  * @author jianping5
  * @createDate 3/4/2023 下午 8:10
  */
 @RestController
 @RequestMapping("/resource")
+@Api(tags = "官方资源 Controller")
 public class OfficialResourceController {
 
     @Resource
@@ -37,6 +41,7 @@ public class OfficialResourceController {
      * @param officialResourceAddRequest
      * @return
      */
+    @ApiOperation(value = "添加官方资源")
     @PostMapping("/add")
     public BaseResponse<Long> addOfficialResource(@RequestBody OfficialResourceAddRequest officialResourceAddRequest) {
         // 校验请求体
@@ -60,6 +65,7 @@ public class OfficialResourceController {
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "下架官方资源")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteOfficialResource(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -87,32 +93,35 @@ public class OfficialResourceController {
     }
 
     /**
-     * 更新周边
+     * 更新官方资源
      *
      * @param officialResourceUpdateRequest
      * @return
      */
+    @ApiOperation(value = "更新官方资源")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateOfficialResource(@RequestBody OfficialResourceUpdateRequest officialResourceUpdateRequest) {
-        // 校验团队更新请求体
+        // 校验官方资源更新请求体
         if (officialResourceUpdateRequest == null || officialResourceUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 将团队更新请求体的内容赋值给 团队
-        OfficialResource OfficialResource = new OfficialResource();
-        BeanUtils.copyProperties(officialResourceUpdateRequest, OfficialResource);
+        // 将团队更新请求体的内容赋值给 官方资源
+        OfficialResource officialResource = new OfficialResource();
+        BeanUtils.copyProperties(officialResourceUpdateRequest, officialResource);
 
         // 参数校验
-        officialResourceService.validOfficialResource(OfficialResource, false);
+        officialResourceService.validOfficialResource(officialResource, false);
         long id = officialResourceUpdateRequest.getId();
 
         // 判断是否存在
-        OfficialResource oldPost = officialResourceService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+        OfficialResource oldOfficialResource = officialResourceService.getById(id);
+        ThrowUtils.throwIf(oldOfficialResource == null, ErrorCode.NOT_FOUND_ERROR);
 
-        // 更新团队
-        officialResourceService.updateOfficialResource(OfficialResource);
+        // 更新官方资源
+        User loginUser = UserHolder.getUser();
+        officialResource.setUserId(loginUser.getId());
+        officialResourceService.updateOfficialResource(officialResource);
 
         return ResultUtils.success(true);
     }
@@ -124,6 +133,7 @@ public class OfficialResourceController {
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取官方资源")
     @GetMapping("/get/vo")
     public BaseResponse<OfficialResourceVO> getOfficialResourceVOById(long id) {
         // 校验 id
@@ -144,6 +154,7 @@ public class OfficialResourceController {
      * @param officialResourceQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<OfficialResourceVO>> listOfficialResourceVOByPage(@RequestBody OfficialResourceQueryRequest officialResourceQueryRequest) {
         if (officialResourceQueryRequest == null) {
@@ -163,6 +174,7 @@ public class OfficialResourceController {
     /**
      * 根据 Id 获取官方资源详情
      */
+    @ApiOperation(value = "根据 Id 获取官方资源详情")
     @GetMapping("/detail")
     public BaseResponse<OfficialResourceVO> getOfficialResourceDetail(long offResId, long detailId) {
         // 校验 id

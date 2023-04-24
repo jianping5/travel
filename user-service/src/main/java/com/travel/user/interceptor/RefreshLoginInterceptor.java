@@ -2,8 +2,8 @@ package com.travel.user.interceptor;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.google.gson.Gson;
-import com.travel.user.model.entity.User;
-import com.travel.user.utils.UserHolder;
+import com.travel.common.model.entity.User;
+import com.travel.common.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;

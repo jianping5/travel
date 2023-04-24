@@ -15,6 +15,8 @@ import com.travel.official.model.dto.notification.NotificationUpdateRequest;
 import com.travel.official.model.entity.Notification;
 import com.travel.official.model.vo.NotificationVO;
 import com.travel.official.service.NotificationService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/notification")
+@Api(tags = "资讯通知 Controller")
 public class NotificationController {
     @Resource
     private NotificationService notificationService;
@@ -36,6 +39,7 @@ public class NotificationController {
      * @param notificationAddRequest
      * @return
      */
+    @ApiOperation(value = "添加资讯通知")
     @PostMapping("/add")
     public BaseResponse<Long> addNotification(@RequestBody NotificationAddRequest notificationAddRequest) {
         // 校验请求体
@@ -54,11 +58,12 @@ public class NotificationController {
     }
 
     /**
-     * 下架官方资源
+     * 下架资讯通知
      *
      * @param deleteRequest
      * @return
      */
+    @ApiOperation(value = "下架资讯通知")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteNotification(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
@@ -86,32 +91,35 @@ public class NotificationController {
     }
 
     /**
-     * 更新周边
+     * 更新资讯通知
      *
      * @param notificationUpdateRequest
      * @return
      */
+    @ApiOperation(value = "更新资讯通知")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateNotification(@RequestBody NotificationUpdateRequest notificationUpdateRequest) {
-        // 校验团队更新请求体
+        // 校验资讯通知更新请求体
         if (notificationUpdateRequest == null || notificationUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 将团队更新请求体的内容赋值给 团队
-        Notification Notification = new Notification();
-        BeanUtils.copyProperties(notificationUpdateRequest, Notification);
+        // 将团队更新请求体的内容赋值给 资讯通知
+        Notification notification = new Notification();
+        BeanUtils.copyProperties(notificationUpdateRequest, notification);
 
         // 参数校验
-        notificationService.validNotification(Notification, false);
+        notificationService.validNotification(notification, false);
         long id = notificationUpdateRequest.getId();
 
         // 判断是否存在
-        Notification oldPost = notificationService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+        Notification oldNotification = notificationService.getById(id);
+        ThrowUtils.throwIf(oldNotification == null, ErrorCode.NOT_FOUND_ERROR);
 
-        // 更新团队
-        notificationService.updateNotification(Notification);
+        // 更新资讯通知
+        User loginUser = UserHolder.getUser();
+        notification.setUserId(loginUser.getId());
+        notificationService.updateNotification(notification);
 
         return ResultUtils.success(true);
     }
@@ -122,6 +130,7 @@ public class NotificationController {
      * @param id
      * @return
      */
+    @ApiOperation(value = "根据 id 获取资讯通知详情")
     @GetMapping("/get/vo")
     public BaseResponse<NotificationVO> getNotificationVOById(long id) {
         // 校验 id
@@ -142,6 +151,7 @@ public class NotificationController {
      * @param notificationQueryRequest
      * @return
      */
+    @ApiOperation(value = "分页获取列表（封装类）")
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<NotificationVO>> listNotificationVOByPage(@RequestBody NotificationQueryRequest notificationQueryRequest) {
         if (notificationQueryRequest == null) {

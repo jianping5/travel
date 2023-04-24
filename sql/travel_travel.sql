@@ -1,5 +1,4 @@
 create database travel_travel;
-
 use travel_travel;
 
 create table article
@@ -11,7 +10,7 @@ create table article
     cover_url      varchar(512)                           not null comment '封面 URL',
     team_id        bigint       default 0                 not null comment '所属团队 id',
     permission     int          default 0                 not null comment '权限（0：公开 1：部分可见 2：私密）',
-    tag            varchar(512)                           not null comment '标签',
+    tag            varchar(512) default ''                not null comment '标签',
     intro          varchar(255)                           not null comment '文章首句话',
     location       varchar(255) default ''                not null comment '地理位置',
     like_count     int          default 0                 not null comment '点赞量',
@@ -65,7 +64,7 @@ create table video
     intro          varchar(1024)                          not null comment '介绍',
     video_url      varchar(255)                           not null comment '视频 URL',
     permission     int          default 0                 not null comment '权限（0：公开 1：部分可见 2：私密）',
-    tag            varchar(512)                           not null comment '标签',
+    tag            varchar(512) default ''                not null comment '标签',
     location       varchar(255) default ''                not null comment '地理位置',
     like_count     int          default 0                 not null comment '点赞量',
     comment_count  int          default 0                 not null comment '评论量',

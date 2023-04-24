@@ -25,13 +25,14 @@ import com.travel.official.service.DerivativeService;
 import com.travel.official.service.OfficialService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -129,16 +130,18 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         String derivativeName = derivativeQueryRequest.getDerivativeName();
         String intro = derivativeQueryRequest.getIntro();
         Long userId = derivativeQueryRequest.getUserId();
+        Long officialId = derivativeQueryRequest.getOfficialId();
         Integer derivativeState = derivativeQueryRequest.getDerivativeState();
 
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.like("team_name", searchText).or().like("intro", searchText);
+            queryWrapper.like("derivative_name", searchText).or().like("intro", searchText);
         }
-        queryWrapper.like(StringUtils.isNotBlank(derivativeName), "team_name", derivativeName);
+        queryWrapper.like(StringUtils.isNotBlank(derivativeName), "derivative_name", derivativeName);
         queryWrapper.like(StringUtils.isNotBlank(intro), "intro", intro);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(officialId), "official_id", officialId);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         queryWrapper.eq(ObjectUtils.isNotEmpty(derivativeState), "derivative_state", 0);
@@ -159,6 +162,9 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         derivative.setOfficialId(officialId);
         // 设置官方类型
         derivative.setTypeId(typeId);
+
+        // todo：暂时随即注入浏览量
+        derivative.setViewCount(RandomUtils.nextInt());
 
         // 添加到数据库中
         boolean saveResult = this.save(derivative);
@@ -218,6 +224,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
 
         // 若无，则从数据库中读取
         QueryWrapper<Derivative> derivativeQueryWrapper = new QueryWrapper<>();
+        derivativeQueryWrapper.eq("derivative_state", 0);
         derivativeQueryWrapper.last("order by 5*obtain_count+3*view_count desc limit " + size);
         derivativeVOList = this.list(derivativeQueryWrapper).stream().map(derivative -> getDerivativeVO(derivative)).collect(Collectors.toList());
 
@@ -235,7 +242,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
     }
 
     @Override
-    public Official obtainDerivative(Long id, Integer obtainMethod) {
+    public Official obtainDerivative(Long id) {
 
         User loginUser = UserHolder.getUser();
         Long loginUserId = loginUser.getId();
@@ -243,6 +250,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
 
         // todo：待优化
         Derivative derivative = this.getById(id);
+        Integer obtainMethod = derivative.getObtainMethod();
         Long officialId = derivative.getOfficialId();
 
         // todo：返回官方用户，获取联系方式
@@ -255,6 +263,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         UpdateWrapper<Derivative> derivativeUpdateWrapper = new UpdateWrapper<>();
         derivativeUpdateWrapper.eq("id", id);
         derivativeUpdateWrapper.setSql("obtain_count = obtain_count + 1");
+        this.update(derivativeUpdateWrapper);
 
         // 获取周边价格
         double price = derivative.getPrice();
@@ -274,7 +283,8 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
             consumeRecordAddRequest.setContent("您使用现金购买了周边");
             consumeRecordAddRequest.setConsumeType(TypeConstant.DERIVATIVE.getTypeIndex());
             consumeRecordAddRequest.setConsumeId(id);
-            rabbitTemplate.convertAndSend(exchangeName, "consume.derivative", consumeRecordAddRequest);
+            String consumeRecordAddRequestJson = gson.toJson(consumeRecordAddRequest);
+            rabbitTemplate.convertAndSend(exchangeName, "consume.derivative", consumeRecordAddRequestJson);
 
         }
 
@@ -284,16 +294,18 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         // 代币兑换
         if (obtainMethod == 1) {
             // todo：消耗代币，并判断是否足够
-            innerUserService.updateToken(loginUserId, token, false);
+            boolean result = innerUserService.updateToken(loginUserId, token, false);
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "代币不足");
 
             // todo：将兑换记录添加到兑换记录表中，并生成唯一凭证
             ExchangeRecordAddRequest exchangeRecordAddRequest = new ExchangeRecordAddRequest();
             exchangeRecordAddRequest.setDerivativeId(id);
             exchangeRecordAddRequest.setTokenAccount(token);
             exchangeRecordAddRequest.setUserId(loginUserId);
-            String certificate = DigestUtils.md5DigestAsHex(("derivative").getBytes());
+            String certificate = RandomStringUtils.random(32, true, true);
             exchangeRecordAddRequest.setCertificate(certificate);
-            rabbitTemplate.convertAndSend(exchangeName, "exchange.derivative", exchangeRecordAddRequest);
+            String exchangeRecordAddRequestJson = gson.toJson(exchangeRecordAddRequest);
+            rabbitTemplate.convertAndSend(exchangeName, "exchange.derivative", exchangeRecordAddRequestJson);
             // todo：记录当前用户的行为到用户行为表中（暂时不需要）
 
         }

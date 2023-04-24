@@ -4,23 +4,23 @@ package com.travel.user.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.travel.common.common.BaseResponse;
-import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
-import com.travel.common.exception.ThrowUtils;
 import com.travel.common.service.InnerTeamService;
+import com.travel.common.utils.UserHolder;
 import com.travel.user.constant.CodeType;
 import com.travel.user.constant.CredentialType;
 import com.travel.user.model.dto.UserVO;
 import com.travel.user.model.entity.User;
-import com.travel.user.model.request.*;
+import com.travel.user.model.request.CodeCheckRequest;
+import com.travel.user.model.request.CodeSendRequest;
+import com.travel.user.model.request.LoginRequest;
+import com.travel.user.model.request.RegisterRequest;
 import com.travel.user.service.UserService;
 import com.travel.user.utils.FormatValidator;
-import com.travel.user.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -28,7 +28,10 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
 import org.redisson.api.RSetCache;
 import org.redisson.api.RedissonClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +47,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RestController
-@RequestMapping("/user")
 public class UserController {
 
     @Resource()
@@ -245,7 +247,7 @@ public class UserController {
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
-        User user = UserHolder.getUser();
+        com.travel.common.model.entity.User user = UserHolder.getUser();
         log.info(user.toString());
 
         String token = request.getHeader("token");

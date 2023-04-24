@@ -22,14 +22,15 @@ public class OfficialLikeRequest implements Serializable {
     private Long id;
 
     /**
-     * 点赞对象类型
+     * 点赞对象类型（TypeConstant 枚举类中的类型 index）
      */
-    @ApiModelProperty(value = "点赞对象类型")
+    @ApiModelProperty(value = "点赞对象类型（TypeConstant 枚举类中的类型 index）")
     private Integer type;
 
     /**
-     * 点赞状态（点赞：0，取消点赞：1）
+     * 点赞状态（点赞：1，取消点赞：2）
      */
+    @ApiModelProperty(value = "点赞状态（点赞：1，取消点赞：2）")
     private Integer status;
 
 

@@ -6,9 +6,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @author jianping5
@@ -17,11 +16,19 @@ import java.util.List;
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
-    @Resource
     private RedissonClient redissonClient;
 
-    @Resource
     private Gson gson;
+
+    @Resource
+    private void setRedissonClient(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
+    }
+
+    @Resource
+    private void setGson(Gson gson) {
+        this.gson = gson;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

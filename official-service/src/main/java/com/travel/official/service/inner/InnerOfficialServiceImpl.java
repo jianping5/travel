@@ -20,14 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
-import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -154,17 +149,24 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
             // 构建 ES (id, officialName) 的 map
             HashMap<Long, String> officialIdNameMap = new HashMap<>();
 
-            searchHitList.stream().forEach(searchHit ->
-                    officialIdNameMap.put(searchHit.getContent().getId(), searchHit.getHighlightField("officialName").get(0)));
+            searchHitList.stream().forEach(searchHit -> {
+                List<String> officialNameList = searchHit.getHighlightField("officialName");
+                if (CollectionUtils.isNotEmpty(officialNameList)) {
+                    officialIdNameMap.put(searchHit.getContent().getId(), officialNameList.get(0));
+                } else {
+                    officialIdNameMap.put(searchHit.getContent().getId(), null);
+                }
+            });
 
             // todo: 若 sortField 为 all，说明走综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Official> officialQueryWrapper = new QueryWrapper<>();
-            officialQueryWrapper.in("id", officialIdNameMap.keySet());
+            officialQueryWrapper.in(CollectionUtils.isNotEmpty(officialIdNameMap.keySet()), "id", officialIdNameMap.keySet());
+
             if ("all".equals(sortField)) {
                 officialQueryWrapper.last("order by 5*like_count+3*favorite_count+view_count+review_count desc");
             } else {
-                officialQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+                officialQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             }
             List<Official> officialList = officialMapper.selectList(officialQueryWrapper);
 
@@ -179,7 +181,9 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
                     if (idOfficialMap.containsKey(officialId)) {
                         // 将 team 的非高亮字段赋值为高亮的值
                         Official official = idOfficialMap.get(officialId).get(0);
-                        official.setOfficialName(highLightOfficialName);
+                        if (highLightOfficialName != null) {
+                            official.setOfficialName(highLightOfficialName);
+                        }
                         resourceList.add(official);
                     } else {
                         // 从 es 清空 db 已物理删除的数据
@@ -223,15 +227,14 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
         PageRequest pageRequest = PageRequest.of((int) current, (int) pageSize);
 
         // 按经纬度排序
-        GeoDistanceSortBuilder sortBuilder = SortBuilders.geoDistanceSort("location", new GeoPoint(latAndLong))
+        /*GeoDistanceSortBuilder sortBuilder = SortBuilders.geoDistanceSort("location", new GeoPoint(latAndLong))
                 .order(SortOrder.ASC)
-                .unit(DistanceUnit.KILOMETERS);
+                .unit(DistanceUnit.KILOMETERS);*/
 
         // todo：待测试
         // 构造查询（经纬度排序查询）
         NativeSearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(boolQueryBuilder)
                 .withPageable(pageRequest)
-                .withSorts(sortBuilder)
                 .build();
 
         SearchHits<OfficialEsDTO> searchHits = elasticsearchRestTemplate.search(searchQuery, OfficialEsDTO.class);
@@ -252,8 +255,8 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
             // todo: 若 sortField 为 all，说明走综合排序
             // 从数据库中取出更完整的数据（并排序）
             QueryWrapper<Official> officialQueryWrapper = new QueryWrapper<>();
-            officialQueryWrapper.in("id", idSet);
-            officialQueryWrapper.orderBy(true, CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
+            officialQueryWrapper.in(CollectionUtils.isNotEmpty(idSet), "id", idSet);
+            officialQueryWrapper.orderBy(StringUtils.isNotEmpty(sortField), CommonConstant.SORT_ORDER_ASC.equals(sortOrder), sortField);
             List<Official> officialList = officialMapper.selectList(officialQueryWrapper);
 
             if (officialList != null) {
@@ -295,14 +298,14 @@ public class InnerOfficialServiceImpl implements InnerOfficialService {
         // 先根据行为对象 id 列表查询对应的省份集
         QueryWrapper<Official> officialQueryWrapper = new QueryWrapper<>();
         officialQueryWrapper.select("province");
-        officialQueryWrapper.in("id", idList);
+        officialQueryWrapper.in(CollectionUtils.isNotEmpty(idList), "id", idList);
         // 类型id（景区）
         officialQueryWrapper.eq("type_id", 1);
         Set<String> provinceSet = officialService.list(officialQueryWrapper).stream().map(official -> official.getProvince()).collect(Collectors.toSet());
 
         // 根据省份集查询这些用户最近发布的游记
         QueryWrapper<Official> newOfficialQueryWrapper = new QueryWrapper<>();
-        newOfficialQueryWrapper.in("province", provinceSet);
+        newOfficialQueryWrapper.in(CollectionUtils.isNotEmpty(provinceSet), "province", provinceSet);
         Page<Official> page = officialService.page(new Page<>(pageNum, pageSize), newOfficialQueryWrapper);
 
         return objPageToVdtoPage(page);

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * MyBatis Plus 配置
+ * @author jianping5
  */
 @Configuration
 @MapperScan("com.travel.team.mapper")

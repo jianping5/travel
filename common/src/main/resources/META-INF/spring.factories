@@ -1,4 +1,2 @@
 # spring boot starter
 org.springframework.boot.autoconfigure.EnableAutoConfiguration= com.travel.common.config.RedissonConfig
-
-# com.travel.common.config.RedissonConfig

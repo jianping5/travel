@@ -1,5 +1,4 @@
 create database travel_user;
-
 use travel_user;
 
 create table collection
@@ -113,7 +112,7 @@ create table user_info
     signature     varchar(255)                       null comment '个性签名',
     birth         datetime                           null comment '生日',
     sex           tinyint                            null comment '性别（0：女 1：男）',
-    like_num      int      default 0                 not null comment '获赞数',
+    like_count    int      default 0                 not null comment '获赞数',
     view_count    int      default 0                 not null comment '浏览数',
     follow_count  int      default 0                 not null comment '关注数',
     create_time   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
@@ -127,7 +126,7 @@ create table user_like
         primary key,
     user_id       bigint                             not null comment '用户 id',
     like_obj_type int                                not null comment '点赞类型',
-    like_obj_id   int                                not null comment '点赞对象 id',
+    like_obj_id   bigint                             not null comment '点赞对象 id',
     like_state    tinyint  default 0                 null comment '点赞状态（0：点赞 1：取消点赞）',
     create_time   datetime default CURRENT_TIMESTAMP not null comment '点赞时间',
     update_time   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'

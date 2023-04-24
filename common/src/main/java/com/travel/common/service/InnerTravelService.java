@@ -15,7 +15,7 @@ import java.util.List;
 public interface InnerTravelService {
 
     /**
-     * 根据团队 id 和用户 id 更新对应游记的团队 id 为 0 （团队回收站 id）
+     * 根据团队 id 和用户 id 更新对应游记的团队 id 为 -1 （团队回收站 id）
      * @param userId
      * @param teamId
      * @return
