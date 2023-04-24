@@ -52,14 +52,9 @@ public class UserLikeServiceImpl extends ServiceImpl<UserLikeMapper, UserLike>
 
     @Override
     public void executeUserLike(UserLike userLike) {
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        // 设置用户 id
-        userLike.setUserId(loginUserId);
-
         // 更新数据库
         QueryWrapper<UserLike> eq = new QueryWrapper<UserLike>()
-                .eq("user_id", loginUserId)
+                .eq("user_id", userLike.getUserId())
                 .eq("like_obj_type",userLike.getLikeObjType())
                 .eq("like_obj_id", userLike.getLikeObjId());
         UserLike oldUserLike = getOne(eq);
@@ -68,7 +63,7 @@ public class UserLikeServiceImpl extends ServiceImpl<UserLikeMapper, UserLike>
             ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR);
         }else {
             oldUserLike.setLikeState(userLike.getLikeState());
-            boolean update = updateById(userLike);
+            boolean update = updateById(oldUserLike);
             ThrowUtils.throwIf(!update,ErrorCode.SYSTEM_ERROR);
         }
         //更新对应实体的点赞数
@@ -76,12 +71,13 @@ public class UserLikeServiceImpl extends ServiceImpl<UserLikeMapper, UserLike>
         UpdateWrapper<?> updateWrapper = updateWrapperRegistry.getUpdateWrapperByType(userLike.getLikeObjType());
         updateWrapper.eq("id", userLike.getLikeObjId());
         if(userLike.getLikeState().equals(0)){
-            updateWrapper.setSql("like_count = like_count + 1");
-        }else {
             updateWrapper.setSql("like_count = like_count - 1");
+        }else {
+            updateWrapper.setSql("like_count = like_count + 1");
         }
         // 执行
-        service.update((Wrapper) updateWrapper);
+        boolean update = service.update((Wrapper) updateWrapper);
+
     }
 
 }

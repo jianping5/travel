@@ -76,12 +76,8 @@ public class HistoryServiceImpl extends ServiceImpl<HistoryMapper, History>
 
     @Override
     public History addHistory(History history) {
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        // 设置用户 id
-        history.setUserId(loginUserId);
         QueryWrapper<History> eq = new QueryWrapper<History>()
-                .eq("user_id", loginUserId)
+                .eq("user_id", history.getUserId())
                 .eq("history_obj_type",history.getHistoryObjType())
                 .eq("history_obj_id",history.getHistoryObjId());
         History oldHistory = getOne(eq);

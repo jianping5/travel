@@ -20,6 +20,8 @@ import com.travel.travel.model.request.*;
 import com.travel.travel.service.ArticleDetailService;
 import com.travel.travel.service.ArticleService;
 import com.travel.travel.service.VideoService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +32,7 @@ import javax.annotation.Resource;
  * @createDate 22/3/2023 下午 3:10
  */
 @RestController
-@RequestMapping("/travel")
+@Api(tags = "Travel 控制器")
 public class TravelController {
     @Resource
     private ArticleService articleService;
@@ -40,6 +42,7 @@ public class TravelController {
     private ArticleDetailService articleDetailService;
 
     @PostMapping("/article/add")
+    @ApiOperation(value = "发布文章游记")
     public BaseResponse<Long> addArticle(@RequestBody ArticleAddRequest articleAddRequest) {
         // 校验请求体
         if (articleAddRequest == null) {
@@ -48,6 +51,8 @@ public class TravelController {
         // 将 请求体的内容赋值到 Article 中
         Article article = new Article();
         BeanUtils.copyProperties(articleAddRequest, article);
+        User user = UserHolder.getUser();
+        article.setUserId(user.getId());
 
         // 校验 Article 信息是否合法
         articleService.validArticle(article, true);
@@ -62,6 +67,7 @@ public class TravelController {
     }
 
     @PostMapping("/article/delete")
+    @ApiOperation(value = "删除文章游记")
     public BaseResponse<Boolean> deleteArticle(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -88,6 +94,7 @@ public class TravelController {
     }
 
     @PostMapping("/article/update")
+    @ApiOperation(value = "更新文章游记")
     public BaseResponse<Boolean> updateArticle(@RequestBody ArticleUpdateRequest articleUpdateRequest) {
         // 校验团队更新请求体
         if (articleUpdateRequest == null || articleUpdateRequest.getId() <= 0) {
@@ -113,7 +120,8 @@ public class TravelController {
     }
 
     @GetMapping("/article/get/vo")
-    public BaseResponse<ArticleVO> getArticleVOById(long id) {
+    @ApiOperation(value = "根据Id查询文章游记")
+    public BaseResponse<ArticleVO> getArticleVOById(Long id) {
         // 校验 id
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -129,12 +137,12 @@ public class TravelController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         // todo: 插入用户行为记录
+        // todo: 插入浏览记录
         return ResultUtils.success(articleService.getArticleVO(article,articleDetail));
     }
 
-
-
     @PostMapping("/article/list/page/vo")
+    @ApiOperation(value = "分页查询文章游记")
     public BaseResponse<Page<ArticleVO>> listArticleVOByPage(@RequestBody ArticleQueryRequest articleQueryRequest) {
         if (articleQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -148,10 +156,8 @@ public class TravelController {
         return ResultUtils.success(articleService.getArticleVOPage(articlePage));
     }
 
-    /**
-     * 根据 Id 获取官方详情
-     */
     @GetMapping("/detail")
+    @ApiOperation(value = "获取文章详情")
     public BaseResponse<ArticleVO> getArticleDetailVO(long articleId, long detailId) {
         // 校验 id
         if (articleId <= 0 || detailId <= 0) {
@@ -172,6 +178,7 @@ public class TravelController {
 
 
     @PostMapping("/video/add")
+    @ApiOperation(value = "发布视频游记")
     public BaseResponse<Long> addVideo(@RequestBody VideoAddRequest videoAddRequest) {
         // 校验请求体
         if (videoAddRequest == null) {
@@ -180,6 +187,7 @@ public class TravelController {
         // 将 请求体的内容赋值到 Video 中
         Video video = new Video();
         BeanUtils.copyProperties(videoAddRequest, video);
+        video.setUserId(UserHolder.getUser().getId());
 
         // 校验 Video 信息是否合法
         videoService.validVideo(video, true);
@@ -193,8 +201,8 @@ public class TravelController {
         return ResultUtils.success(newVideoId);
     }
 
-
     @PostMapping("/video/delete")
+    @ApiOperation(value = "删除视频游记")
     public BaseResponse<Boolean> deleteVideo(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -220,8 +228,8 @@ public class TravelController {
         return ResultUtils.success(true);
     }
 
-
     @PostMapping("/video/update")
+    @ApiOperation(value = "更新视频游记")
     public BaseResponse<Boolean> updateVideo(@RequestBody VideoUpdateRequest videoUpdateRequest) {
         // 校验团队更新请求体
         if (videoUpdateRequest == null || videoUpdateRequest.getId() <= 0) {
@@ -246,9 +254,8 @@ public class TravelController {
         return ResultUtils.success(true);
     }
 
-
-
     @GetMapping("/video/get/vo")
+    @ApiOperation(value = "根据Id查询视频游记")
     public BaseResponse<VideoVO> getVideoVOById(long id) {
         // 校验 id
         if (id <= 0) {
@@ -269,8 +276,8 @@ public class TravelController {
         return ResultUtils.success(videoService.getVideoDetail(video));
     }
 
-
     @PostMapping("/video/list/page/vo")
+    @ApiOperation(value = "分页查询视频游记")
     public BaseResponse<Page<VideoVO>> listVideoVOByPage(@RequestBody VideoQueryRequest videoQueryRequest) {
         if (videoQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

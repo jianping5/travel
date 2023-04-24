@@ -14,6 +14,8 @@ import com.travel.user.model.entity.History;
 import com.travel.user.model.request.HistoryAddRequest;
 import com.travel.user.model.request.HistoryQueryRequest;
 import com.travel.user.service.HistoryService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,12 +29,14 @@ import javax.annotation.Resource;
  * @createDate 22/3/2023 下午 3:10
  */
 @RestController
+@Api(tags = "历史记录 Controller")
 @RequestMapping("/history")
 public class HistoryController {
     @Resource
     private HistoryService historyService;
 
     @PostMapping("/history/add")
+    @ApiOperation(value = "添加浏览记录")
     public BaseResponse<Long> addHistory(@RequestBody HistoryAddRequest historyAddRequest) {
         // 校验请求体
         if (historyAddRequest == null) {
@@ -41,6 +45,8 @@ public class HistoryController {
         // 将 请求体的内容赋值到 History 中
         History history = new History();
         BeanUtils.copyProperties(historyAddRequest, history);
+        User user = UserHolder.getUser();
+        history.setUserId(user.getId());
 
         // 校验 History 信息是否合法
         historyService.validHistory(history, true);
@@ -55,6 +61,7 @@ public class HistoryController {
     }
 
     @PostMapping("/history/delete")
+    @ApiOperation(value = "删除浏览记录")
     public BaseResponse<Boolean> deleteHistory(@RequestBody DeleteRequest deleteRequest) {
         // 校验删除请求体
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -81,6 +88,7 @@ public class HistoryController {
     }
 
     @PostMapping("/history/list/page")
+    @ApiOperation(value = "获取浏览记录")
     public BaseResponse<Page<History>> listHistoryByPage(@RequestBody HistoryQueryRequest historyQueryRequest) {
         if (historyQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

@@ -15,16 +15,12 @@ import com.travel.user.model.request.MessageQueryRequest;
 public interface MessageService extends IService<Message> {
 
     
-    MessageVO getMessageVO(Message message);
+    MessageVO getMessageDetail(Message message);
 
     Page<MessageVO> getMessageVOPage(Page<Message> messagePage);
     
     QueryWrapper<Message> getQueryWrapper(MessageQueryRequest messageQueryRequest);
 
     boolean deleteMessage(Message message);
-    
-    boolean updateMessage(Message message);
-
-    void validMessage(Message message, boolean b);
 
 }

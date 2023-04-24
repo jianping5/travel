@@ -1,5 +1,9 @@
 package com.travel.user.model.request;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -9,63 +13,27 @@ import java.io.Serializable;
  * @createDate 23/3/2023 下午 2:01
  */
 @Data
+@ApiModel(value = "更新消息阅读状态请求体")
 public class MessageUpdateRequest implements Serializable {
 
 
     /**
      * 主键
      */
+    @ApiModelProperty(value = "主键")
     private Long id;
 
     /**
-     * 所属用户 id
+     * 消息状态（0：未读 1：已读）
      */
-    private Long userId;
+    @ApiModelProperty(value = "消息状态（0：未读 1：已读）")
+    private Integer messageState;
 
+    @ApiModelProperty(hidden = true)
     /**
-     * 所属官方 id
+     * 是否删除（0：未删除 1：已删除）
      */
-    private Long officialId;
-
-    /**
-     * 周边名称
-     */
-    private String derivativeName;
-
-    /**
-     * 封面 URL
-     */
-    private String coverUrl;
-
-    /**
-     * 周边价格
-     */
-    private Double price;
-
-    /**
-     * 周边介绍
-     */
-    private String intro;
-
-    /**
-     * 获取方式（0：现金 1：代币）
-     */
-    private Integer obtainMethod;
-
-    /**
-     * 周边数量
-     */
-    private Integer totalCount;
-
-    /**
-     * 类型 id
-     */
-    private Integer typeId;
-
-    /**
-     * 周边状态（0：正常 1：异常 2：下架）
-     */
-    private Integer derivativeState;
+    private Integer isDeleted;
 
     private static final long serialVersionUID = 1L;
 }

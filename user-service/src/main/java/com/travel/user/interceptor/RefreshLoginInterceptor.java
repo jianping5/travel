@@ -46,11 +46,6 @@ public class RefreshLoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
-//        //若不为白名单
-//        if(white == null && token == null){
-//            return false;
-//        }
-
         if (redissonClient == null) {
             log.info("null redissonClient");
         }

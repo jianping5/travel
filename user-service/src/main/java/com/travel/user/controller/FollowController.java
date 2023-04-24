@@ -3,7 +3,6 @@ package com.travel.user.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.travel.common.common.BaseResponse;
-import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.common.ResultUtils;
 import com.travel.common.exception.BusinessException;
@@ -15,37 +14,41 @@ import com.travel.user.model.entity.Follow;
 import com.travel.user.model.request.FollowRequest;
 import com.travel.user.model.request.FollowQueryRequest;
 import com.travel.user.service.FollowService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.redisson.api.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author zgy
  * @createDate 22/3/2023 下午 3:10
  */
 @RestController
+@Api(tags = "关注 Controller")
 @RequestMapping("/follow")
 public class FollowController {
     @Resource
     private FollowService followService;
-    @Resource()
+    @Resource
     private RedissonClient redissonClient;
     @Resource
     private RabbitTemplate rabbitTemplate;
 
-    @PostMapping("/follow/execute")
+    @PostMapping("/execute")
+    @ApiOperation(value = "关注/取消关注")
     public BaseResponse<Boolean> executeFollow(@RequestBody FollowRequest followRequest) {
         // 校验关注请求体
-        if (followRequest == null || followRequest.getId() <= 0) {
+        if (followRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        followService.validFollow(followRequest, true);
         // 获取当前登录用户
         User loginUser = UserHolder.getUser();
+        followRequest.setUserId(loginUser.getId());
+
+        followService.validFollow(followRequest, true);
 
         // 仅本人或管理员可更改
         if (!followRequest.getUserId().equals(loginUser.getId())) {
@@ -75,7 +78,8 @@ public class FollowController {
     }
 
 
-    @PostMapping("/follow/list/page/vo")
+    @PostMapping("/list/page/vo")
+    @ApiOperation(value = "获取关注列表")
     public BaseResponse<Page<FollowVO>> listFollowVOByPage(@RequestBody FollowQueryRequest followQueryRequest) {
         if (followQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

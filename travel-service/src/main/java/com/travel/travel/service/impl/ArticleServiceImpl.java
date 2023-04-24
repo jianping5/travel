@@ -59,7 +59,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         Long userId = article.getUserId();
         String intro = article.getIntro();
         String coverUrl = article.getCoverUrl();
-        Integer permission = article.getPermission();
         String tag = article.getTag();
         String location = article.getLocation();
         String detail = article.getDetail();
@@ -67,7 +66,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         // 创建时，参数不能为空
         if (add) {
             ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,location,detail,tag,intro), ErrorCode.PARAMS_ERROR);
-            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,permission,tag,location,detail),ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,tag,location,detail),ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
         if (StringUtils.isNotBlank(detail) && detail.length() > 8192) {
@@ -231,14 +230,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         Long pageSize = articleQueryRequest.getPageSize();
         Long current = articleQueryRequest.getCurrent();
         Integer orderType = articleQueryRequest.getOrderType();
-        int fromIndex = 0;
         //id限制
         if (!ObjectUtils.anyNull(idList)) {
             queryWrapper.in(ObjectUtils.isNotEmpty(idList),"id", idList);
         }
         //内容模糊限制
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.like("tag", searchText).or().like("intro", searchText).or().like("title", searchText);
+            queryWrapper.and(i->i.like("intro", searchText).or().like("title", searchText));
         }
         //文章状态限制
         queryWrapper.eq(ObjectUtils.isNotEmpty(articleState),"article_state", articleState);
@@ -264,28 +262,24 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         //排序限制
         if(orderType!=null&&orderType.equals(0)){
             //热门推荐
-            queryWrapper.last("order by 0.3*like_count + 0.3 * comment_comment + 0.3*favorite_count + 0.1*view_count desc");
+            queryWrapper.last("order by 0.3*like_count + 0.3 * comment_count + 0.3*favorite_count + 0.1*view_count desc");
 
         }else if(orderType!=null&&orderType.equals(1)){
             //最新发布
             queryWrapper.orderByDesc("update_time");
         }
-        Page<Article> page = page(new Page<Article>(current, pageSize), queryWrapper);
-        return page;
+        return page(new Page<Article>(current, pageSize), queryWrapper);
     }
 
     @Override
     public Article addArticle(Article article) {
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        // 设置用户 id
-        article.setUserId(loginUserId);
 
         //todo:考虑事务
         // 添加到数据库中
         boolean saveResult = this.save(article);
         ArticleDetail articleDetail = new ArticleDetail();
         articleDetail.setDetail(article.getDetail());
+        articleDetail.setArticleId(article.getId());
         boolean save = articleDetailService.save(articleDetail);
         ThrowUtils.throwIf(!saveResult||!save, ErrorCode.OPERATION_ERROR);
         // 获取该文章
@@ -320,7 +314,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         // 更新数据库
         boolean updateResult = this.updateById(article);
         ArticleDetail articleDetail = articleDetailService.getOne(new QueryWrapper<ArticleDetail>().eq("article_id", article.getId()));
-        if(article.getDetail()!=null&&StringUtils.isNotBlank(article.getDetail()) && article.getDetail().length() > 8192){
+        if(article.getDetail()!=null&&StringUtils.isNotBlank(article.getDetail()) && article.getDetail().length() < 8192){
             articleDetail.setDetail(article.getDetail());
         }
         boolean update = articleDetailService.updateById(articleDetail);

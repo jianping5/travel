@@ -7,7 +7,9 @@ import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.CommonConstant;
 import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
+import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
+import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
 import com.travel.user.model.dto.MessageVO;
@@ -19,7 +21,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -30,25 +36,25 @@ import java.util.stream.Collectors;
 @Service
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
     implements MessageService{
+    @Resource
+    private InnerUserService innerUserService;
 
     @Override
-    public void validMessage(Message message, boolean add) {
-        if (message == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-
-        Integer readState = message.getMessageState();
-
-        // 有参数则校验
-        if (readState == null||(readState!=0&&readState!= 1)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "简介过长");
-        }
-    }
-
-    @Override
-    public MessageVO getMessageVO(Message message) {
+    public MessageVO getMessageDetail(Message message) {
         MessageVO messageVO = MessageVO.objToVo(message);
-
+        HashSet<Long> longSet = new HashSet<>();
+        longSet.add(message.getMessageUserId());
+        List<UserDTO> userDTOS = innerUserService.listByIds(longSet);
+        HashMap<Long, UserDTO> longUserDTOHashMap = new HashMap<>();
+        userDTOS.stream().forEach(k->{
+            longUserDTOHashMap.put(k.getId(),k);
+        });
+        //填充消息发布者头像，昵称
+        if(longUserDTOHashMap.containsKey(message.getMessageUserId())){
+            UserDTO userDTO = longUserDTOHashMap.get(message.getMessageUserId());
+            messageVO.setMessageUserName(userDTO.getUserName());
+            messageVO.setMessageUserAvatarUrl(userDTO.getUserAvatar());
+        }
         return messageVO;
     }
 
@@ -59,11 +65,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
         if (CollectionUtils.isEmpty(messageList)) {
             return messageVOPage;
         }
-
+        Set<Long> longSet = messageList.stream().map(k -> k.getMessageUserId()).collect(Collectors.toSet());
+        List<UserDTO> userDTOS = innerUserService.listByIds(longSet);
+        HashMap<Long, UserDTO> longUserDTOHashMap = new HashMap<>();
+        userDTOS.stream().forEach(k->{
+            longUserDTOHashMap.put(k.getId(),k);
+        });
         // 填充信息
         List<MessageVO> messageVOList = messageList.stream().map(message -> {
             MessageVO messageVO = MessageVO.objToVo(message);
-
+            //填充消息发布者头像，昵称
+            if(longUserDTOHashMap.containsKey(message.getMessageUserId())){
+                UserDTO userDTO = longUserDTOHashMap.get(message.getMessageUserId());
+                messageVO.setMessageUserName(userDTO.getUserName());
+                messageVO.setMessageUserAvatarUrl(userDTO.getUserAvatar());
+            }
             return messageVO;
         }).collect(Collectors.toList());
         messageVOPage.setRecords(messageVOList);
@@ -86,33 +102,16 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
-        queryWrapper.eq("id_deleted", 0);
+        queryWrapper.eq("is_deleted", 0);
         return queryWrapper;
-    }
-
-    @Override
-    public boolean updateMessage(Message message) {
-
-        // 判断当前用户是否为当前消息的创建人
-        User loginUser = UserHolder.getUser();
-        Long loginUserId = loginUser.getId();
-        Long messageUserId = message.getUserId();
-        ThrowUtils.throwIf(!loginUserId.equals(messageUserId), ErrorCode.NO_AUTH_ERROR);
-
-        // 更新数据库
-        boolean updateResult = this.updateById(message);
-        ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR);
-        return true;
     }
     @Override
     public boolean deleteMessage(Message message) {
         // todo: 考虑加事务
-
-        // 将消息状态设置为已下架
+        // 将消息状态设置为已删除
         message.setIsDeleted(1);
         boolean result = this.updateById(message);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-
         return true;
     }
 }

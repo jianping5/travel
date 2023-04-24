@@ -63,18 +63,13 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         String intro = video.getIntro();
         String coverUrl = video.getCoverUrl();
         String videoUrl = video.getVideoUrl();
-        Integer permission = video.getPermission();
         String tag = video.getTag();
         String location = video.getLocation();
 
         // 创建时，参数不能为空
         if (add) {
             ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,location,videoUrl,tag,intro), ErrorCode.PARAMS_ERROR);
-            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,videoUrl,permission,tag,location),ErrorCode.PARAMS_ERROR);
-        }
-        // 有参数则校验
-        if (StringUtils.isNotBlank(videoUrl)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "详情过长");
+            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,videoUrl,tag,location),ErrorCode.PARAMS_ERROR);
         }
     }
 
@@ -206,14 +201,13 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         Integer videoState = videoQueryRequest.getVideoState();
         Long pageSize = videoQueryRequest.getPageSize();
         Integer orderType = videoQueryRequest.getOrderType();
-        int fromIndex = 0;
         //id限制
         if (!ObjectUtils.anyNull(idList)) {
             queryWrapper.in(ObjectUtils.isNotEmpty(idList),"id", idList);
         }
         //内容模糊限制
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.like("tag", searchText).or().like("intro", searchText).or().like("title", searchText);
+            queryWrapper.and(i->i.like("intro", searchText).or().like("title", searchText));
         }
         //文章状态限制
         queryWrapper.eq(ObjectUtils.isNotEmpty(videoState),"video_state", videoState);
@@ -240,26 +234,13 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         //排序限制
         if(orderType!=null&&orderType.equals(0)){
             //热门推荐
-            queryWrapper.last("order by 0.3*like_count + 0.3 * comment_comment + 0.3*favorite_count + 0.1*view_count desc");
+            queryWrapper.last("order by 0.3*like_count + 0.3 * comment_count + 0.3*favorite_count + 0.1*view_count desc");
 
         }else if(orderType!=null&&orderType.equals(1)){
             //最新发布
             queryWrapper.orderByDesc("update_time");
 
         }
-
-        // todo:猜你喜欢直接走数据服务接口
-//        Page<Video> videoPage = new Page<>();
-//        List<Video> videos = list(queryWrapper);
-//        //起始位置限制
-//        if(lastEndId != null&&videos!=null){
-//            fromIndex = Math.min(videos.indexOf(getById(lastEndId)),videos.size());
-//            videoPage.setTotal(videos.size());
-//        }
-//        List<Video> videoList = list(queryWrapper.select("*").last("limit " + pageSize + " offset " + fromIndex));
-//        videoPage.setSize(pageSize);
-//        videoPage.setRecords(videoList);
-//        videoPage.setCurrent(0);
         return page(new Page<>(current, pageSize), queryWrapper);
     }
 
