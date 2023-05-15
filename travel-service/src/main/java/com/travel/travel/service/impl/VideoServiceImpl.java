@@ -12,15 +12,13 @@ import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.UserHolder;
-import com.travel.travel.model.entity.Article;
-import com.travel.travel.model.entity.ArticleDetail;
-import com.travel.travel.model.vo.ArticleVO;
-import com.travel.travel.model.vo.VideoVO;
+import com.travel.travel.mapper.VideoMapper;
 import com.travel.travel.model.entity.Video;
 import com.travel.travel.model.request.VideoQueryRequest;
+import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.service.VideoService;
-import com.travel.travel.mapper.VideoMapper;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RSet;
@@ -68,8 +66,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
 
         // 创建时，参数不能为空
         if (add) {
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,location,videoUrl,tag,intro), ErrorCode.PARAMS_ERROR);
-            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,videoUrl,tag,location),ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,videoUrl,tag,intro), ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,videoUrl,tag),ErrorCode.PARAMS_ERROR);
         }
     }
 
@@ -231,6 +229,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
             queryWrapper.like("tag","攻略");
 
         }
+
         //排序限制
         if(orderType!=null&&orderType.equals(0)){
             //热门推荐
@@ -250,6 +249,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
         Long loginUserId = loginUser.getId();
         // 设置用户 id
         video.setUserId(loginUserId);
+        video.setViewCount(RandomUtils.nextInt(0, 1000));
+        video.setFavoriteCount(RandomUtils.nextInt(0, 1000));
 
         //todo:考虑事务
         // 添加到数据库中

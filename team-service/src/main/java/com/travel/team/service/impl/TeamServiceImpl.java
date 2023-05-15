@@ -435,6 +435,23 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
         return innerUserService.listUserByTeamId(teamId);
     }
+
+    @Override
+    public List<Team> listMyCreateTeam(Long id) {
+
+        // 根据用户 id 获取团队 id 列表
+        String teamIdStr = innerUserService.getTeamIdStr(id);
+        List<Long> teamIdList = gson.fromJson(teamIdStr, new TypeToken<List<Long>>() {
+        }.getType());
+
+        // todo：根据团队 id 列表获取团队名称
+        QueryWrapper<Team> teamQueryWrapper = new QueryWrapper<>();
+        teamQueryWrapper.in(CollectionUtils.isNotEmpty(teamIdList),"id", teamIdList);
+        teamQueryWrapper.eq("user_id", id);
+        teamQueryWrapper.select("id", "team_name", "team_size", "team_state");
+
+        return this.list(teamQueryWrapper).stream().collect(Collectors.toList());
+    }
 }
 
 

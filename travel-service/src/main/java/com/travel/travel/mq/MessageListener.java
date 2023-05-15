@@ -1,9 +1,9 @@
 package com.travel.travel.mq;
 
 
-import com.alibaba.nacos.shaded.com.google.gson.Gson;
 import com.travel.common.service.InnerDataService;
 import com.travel.common.service.InnerUserService;
+import com.travel.travel.job.UpdateCache;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -20,10 +20,16 @@ import javax.annotation.Resource;
  */
 @Component
 public class MessageListener {
+
     @Resource
     private InnerUserService innerUserService;
+
     @DubboReference
     private InnerDataService innerDataService;
+
+    @Resource
+    private UpdateCache updateCache;
+
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue("user.history.execute"),
             exchange = @Exchange(value = "travel.topic",type = ExchangeTypes.TOPIC),
@@ -51,5 +57,16 @@ public class MessageListener {
         Long id = Long.parseLong(split[2]);
         Integer behaviorType = Integer.parseInt(split[3]);
         innerDataService.addBehavior(userId,type,id,behaviorType);
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = "travel.travel"),
+            exchange = @Exchange(name = "travel.topic", type = ExchangeTypes.TOPIC),
+            key = "cache.travel"
+    ))
+    public void listenTeamQueue(){
+        // todo: 当业务线程发现缓存失效后，由当前线程更新缓存
+
+        updateCache.execute();
     }
 }

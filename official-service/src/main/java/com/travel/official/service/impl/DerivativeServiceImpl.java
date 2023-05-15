@@ -132,6 +132,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         Long userId = derivativeQueryRequest.getUserId();
         Long officialId = derivativeQueryRequest.getOfficialId();
         Integer derivativeState = derivativeQueryRequest.getDerivativeState();
+        Integer obtainMethod = derivativeQueryRequest.getObtainMethod();
 
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
@@ -139,6 +140,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         }
         queryWrapper.like(StringUtils.isNotBlank(derivativeName), "derivative_name", derivativeName);
         queryWrapper.like(StringUtils.isNotBlank(intro), "intro", intro);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(obtainMethod), "obtain_method", obtainMethod);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "user_id", userId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(officialId), "official_id", officialId);
@@ -164,7 +166,7 @@ public class DerivativeServiceImpl extends ServiceImpl<DerivativeMapper, Derivat
         derivative.setTypeId(typeId);
 
         // todo：暂时随即注入浏览量
-        derivative.setViewCount(RandomUtils.nextInt());
+        derivative.setViewCount(RandomUtils.nextInt(0, 1000));
 
         // 添加到数据库中
         boolean saveResult = this.save(derivative);

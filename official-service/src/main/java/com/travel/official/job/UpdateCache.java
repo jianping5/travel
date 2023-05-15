@@ -100,7 +100,7 @@ public class UpdateCache {
                     RList<String> list = redissonClient.getList(redisKey);
                     List<String> derivativeVOStrList = derivativeVOList.stream().map(derivativeVO -> gson.toJson(derivativeVO)).collect(Collectors.toList());
                     list.addAll(derivativeVOStrList);
-                    list.expire(Duration.ofHours(24));
+                    list.expire(Duration.ofHours(8));
                 } catch (Exception e) {
                     log.error("redis set key error", e);
                 }
@@ -149,7 +149,7 @@ public class UpdateCache {
                     RList<String> list = redissonClient.getList(redisKey);
                     List<String> officialVOStrList = officialVOList.stream().map(officialVO -> gson.toJson(officialVO)).collect(Collectors.toList());
                     list.addAll(officialVOStrList);
-                    list.expire(Duration.ofHours(24));
+                    list.expire(Duration.ofHours(8));
                 } catch (Exception e) {
                     log.error("redis set key error", e);
                 }

@@ -1,6 +1,8 @@
 package com.travel.team.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.travel.common.common.BaseResponse;
 import com.travel.common.common.DeleteRequest;
 import com.travel.common.common.ErrorCode;
@@ -21,10 +23,13 @@ import com.travel.team.service.TeamService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -41,6 +46,12 @@ public class TeamController {
     @Resource
     private TeamService teamService;
 
+    @Resource
+    private RedissonClient redissonClient;
+
+    @Resource
+    private Gson gson;
+
     /**
      * 创建团队
      *
@@ -49,7 +60,7 @@ public class TeamController {
      */
     @ApiOperation(value = "创建团队")
     @PostMapping("/add")
-    public BaseResponse<Team> addTeam(@RequestBody TeamAddRequest teamAddRequest) {
+    public BaseResponse<Team> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         // 校验请求体
         if (teamAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -66,6 +77,16 @@ public class TeamController {
 
         // 获取团队 id
         long newTeamId = newTeam.getId();
+
+        // 并更新缓存
+        String token = request.getHeader("token");
+        RMap<String, Object> map = redissonClient.getMap("user_login:" + token);
+        String teamIdListJson = (String) map.get("teamId");
+        System.out.println(teamIdListJson);
+        List<Long> teamIdList = gson.fromJson(teamIdListJson, new TypeToken<List<Long>>() {
+        }.getType());
+        teamIdList.add(newTeamId);
+        map.put("teamId", gson.toJson(teamIdList));
 
         // 更新用户表中的团队字段
         User loginUser = UserHolder.getUser();
@@ -131,8 +152,8 @@ public class TeamController {
         long id = teamUpdateRequest.getId();
 
         // 判断是否存在
-        Team oldPost = teamService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+        Team oldTeam = teamService.getById(id);
+        ThrowUtils.throwIf(oldTeam == null, ErrorCode.NOT_FOUND_ERROR);
 
         // 更新团队
         teamService.updateTeam(team);
@@ -216,22 +237,14 @@ public class TeamController {
      */
     @ApiOperation(value = "分页获取当前用户创建的资源列表")
     @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<TeamVO>> listMyTeamVOByPage(@RequestBody TeamQueryRequest teamQueryRequest) {
+    public BaseResponse<List<Team>> listMyTeamVOByPage(@RequestBody TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
         User loginUser = UserHolder.getUser();
-        teamQueryRequest.setUserId(loginUser.getId());
-        long current = teamQueryRequest.getCurrent();
-        long size = teamQueryRequest.getPageSize();
 
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Team> teamPage = teamService.page(new Page<>(current, size),
-                teamService.getQueryWrapper(teamQueryRequest));
-
-        return ResultUtils.success(teamService.getTeamVOPage(teamPage));
+        return ResultUtils.success(teamService.listMyCreateTeam(loginUser.getId()));
     }
 
     /**

@@ -41,7 +41,7 @@ public class AuthorizeFilter implements GlobalFilter {
     /**
      * 白名单
      */
-    private final List<String> white_path_list = Arrays.asList("/login", "/login/test","/code/send","/code/check","register", "/v2/api-docs", "/get/vo",
+    private final List<String> white_path_list = Arrays.asList("/login", "/login/test","/code/send","/code/check","register", "/v2/api-docs",
             "/doc.html", "/swagger-resources", "/swagger-ui.html", "/swagger-resources/configuration/ui",
             "/swagger-resources/configuration/security", "/v2/api-docs-ext");
 

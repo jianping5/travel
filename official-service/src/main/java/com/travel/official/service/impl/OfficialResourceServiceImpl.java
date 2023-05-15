@@ -86,7 +86,7 @@ public class OfficialResourceServiceImpl extends ServiceImpl<OfficialResourceMap
         officialResource.setTypeId(typeId);
 
         // todo：暂时随机注入浏览量
-        officialResource.setViewCount(RandomUtils.nextInt());
+        officialResource.setViewCount(RandomUtils.nextInt(0, 1000));
 
         // 添加到数据库中
         boolean saveResult = this.save(officialResource);

@@ -139,7 +139,9 @@ public class ArticleVO implements Serializable {
         }
         ArticleVO articleVO = new ArticleVO();
         BeanUtil.copyProperties(article,articleVO);
+
         if(articleDetail!=null){
+            articleVO.setDetailId(articleDetail.getId());
             BeanUtil.copyProperties(articleDetail,articleVO);
         }
         return articleVO;

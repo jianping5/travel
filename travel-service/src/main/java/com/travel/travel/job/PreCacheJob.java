@@ -1,8 +1,9 @@
-package com.travel.team.job;
+package com.travel.travel.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.Resource;
 
 /**
@@ -18,10 +19,10 @@ public class PreCacheJob {
     private UpdateCache updateCache;
 
     /**
-     * 每天执行，预热推荐团队
+     * 每天执行，预热推荐游记
      */
     @Scheduled(cron = "0 31 0 * * *")
-    public void doCacheRecommendTeam() {
+    public void doCacheRecommendTravel() {
         updateCache.execute();
     }
 

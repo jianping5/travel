@@ -26,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.redisson.api.RBucket;
 import org.redisson.api.RMap;
@@ -231,8 +232,39 @@ public class UserController {
     @PostMapping("/login/test")
     public BaseResponse<User> userLoginTest(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
-        // 获取user
-        User user = userService.getById(1L);
+        User user = null;
+        // 获取账号和密码
+        String userAccount = loginRequest.getCredential();
+        String userPassword = loginRequest.getPasscode();
+
+        // 登录
+        QueryWrapper<UserInfo> userInfoQueryWrapper = new QueryWrapper<>();
+        userInfoQueryWrapper.eq("user_account", userAccount);
+        UserInfo one = userInfoService.getOne(userInfoQueryWrapper);
+        if (one != null && one.getUserPassword().equals(userPassword)) {
+            user = userService.getById(one.getUserId());
+            user = userService.traverseUser(user);
+        } else {
+            // 注册
+            //插入 user 表
+            User user0 = new User();
+            user0.setUserRole(0);
+            boolean userSave = userService.save(user0);
+            user = userService.getById(user0.getId());
+
+            // 插入 user_info 表
+            UserInfo userInfo0 = new UserInfo();
+            userInfo0.setUserId(user.getId());
+            userInfo0.setUserAccount(userAccount);
+            userInfo0.setUserPassword(userPassword);
+            userInfo0.setUserName("user_" + RandomUtils.nextInt());
+            userInfo0.setUserAvatar("https://jp-typora-1310703557.cos.ap-shanghai.myqcloud.com/2023/01/13/a3fae8d453be485f9ecc04235ed753a9.PNG");
+
+            boolean save = userInfoService.save(userInfo0);
+            UserInfo userInfo = userInfoService.getById(userInfo0.getId());
+            user.setUserInfo(userInfo);
+            user = userService.traverseUser(user);
+        }
 
         // 生成 token
         String token = UUID.fastUUID().toString(true);
@@ -250,6 +282,8 @@ public class UserController {
         response.setHeader("token", token);
         return ResultUtils.success(user);
     }
+
+
     @ApiOperation(value = "退出登录")
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
@@ -269,11 +303,13 @@ public class UserController {
 
     @ApiOperation(value = "根据id查询用户")
     @GetMapping("/get/vo")
-    public BaseResponse<UserVO> getUserVOById(long id) {
-        // 校验 id
-        if (id <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    public BaseResponse<UserVO> getUserVOById(Long id) {
+        // 如果不传用户 id，则默认为当前用户 id
+        if (id == null) {
+            com.travel.common.model.entity.User user = UserHolder.getUser();
+            id = user.getId();
         }
+
 
         User user = userService.getById(id);
         if (user == null) {

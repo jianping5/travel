@@ -74,7 +74,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         // 设置官方类型
         notification.setTypeId(typeId);
         // todo：暂时随即注入浏览量
-        notification.setViewCount(RandomUtils.nextInt());
+        notification.setViewCount(RandomUtils.nextInt(0, 1000));
 
         // 添加到数据库中
         boolean saveResult = this.save(notification);

@@ -1,7 +1,6 @@
 package com.travel.travel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
@@ -12,10 +11,8 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.dto.MessageDTO;
 import com.travel.common.model.dto.user.UserDTO;
-import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
-import com.travel.common.utils.UserHolder;
 import com.travel.travel.mapper.CommentMapper;
 import com.travel.travel.model.entity.Comment;
 import com.travel.travel.model.request.CommentQueryRequest;
@@ -195,9 +192,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             Comment one = getOne(new QueryWrapper<Comment>().eq("id", comment.getId()));
             one.setReplyCount(one.getReplyCount()+1);
             Comment top = getOne(new QueryWrapper<Comment>().eq("id", comment.getTopId()));
-            top.setReplyCount(one.getReplyCount()+1);
+            if (top != null) {
+                top.setReplyCount(one.getReplyCount()+1);
+                boolean updateTop = updateById(top);
+            }
             boolean update = updateById(one);
-            boolean updateTop = updateById(top);
+
         }
         // 获取该评论
         return this.getById(comment.getId());

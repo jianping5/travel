@@ -11,21 +11,25 @@ import com.travel.common.exception.BusinessException;
 import com.travel.common.exception.ThrowUtils;
 import com.travel.common.model.entity.User;
 import com.travel.common.utils.UserHolder;
-import com.travel.travel.model.vo.ArticleVO;
-import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.model.entity.Article;
 import com.travel.travel.model.entity.ArticleDetail;
 import com.travel.travel.model.entity.Video;
 import com.travel.travel.model.request.*;
+import com.travel.travel.model.vo.ArticleVO;
+import com.travel.travel.model.vo.VideoVO;
 import com.travel.travel.service.ArticleDetailService;
 import com.travel.travel.service.ArticleService;
 import com.travel.travel.service.VideoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author jianping5
@@ -290,5 +294,29 @@ public class TravelController {
 
         //todo: 添加历史记录
         return ResultUtils.success(videoService.getVideoVOPage(videoPage));
+    }
+
+    /**
+     * 获取推荐游记（大众化推荐）
+     *
+     * @param articleQueryRequest
+     * @return
+     */
+    @ApiOperation(value = "获取推荐游记（大众化推荐）")
+    @PostMapping("/article/rcmd")
+    public BaseResponse<List<ArticleVO>> listRcmdArticleVO(@RequestBody ArticleQueryRequest articleQueryRequest) {
+        if (articleQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        long current = articleQueryRequest.getCurrent();
+        long size = articleQueryRequest.getPageSize();
+
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+
+        List<ArticleVO> articleVOList = articleService.listRcmdArticleVO(current, size);
+
+        return ResultUtils.success(articleVOList);
     }
 }

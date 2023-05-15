@@ -12,8 +12,10 @@ import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerUserService;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
+import com.travel.team.mapper.TeamMapper;
 import com.travel.team.mapper.TeamWallMapper;
 import com.travel.team.model.dto.wall.TeamWallQueryRequest;
+import com.travel.team.model.entity.Team;
 import com.travel.team.model.entity.TeamWall;
 import com.travel.team.model.vo.TeamWallVO;
 import com.travel.team.service.TeamWallService;
@@ -23,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +42,9 @@ public class TeamWallServiceImpl extends ServiceImpl<TeamWallMapper, TeamWall>
 
     @DubboReference
     private InnerUserService innerUserService;
+
+    @Resource
+    private TeamMapper teamMapper;
 
     @Override
     public void validTeamWall(TeamWall teamWall, boolean add) {
@@ -132,6 +138,11 @@ public class TeamWallServiceImpl extends ServiceImpl<TeamWallMapper, TeamWall>
 
     @Override
     public TeamWall addTeamWall(TeamWall teamWall) {
+        // todo：校验团队是否存在
+        Long teamId = teamWall.getTeamId();
+        Team team = teamMapper.selectById(teamId);
+        ThrowUtils.throwIf(team == null, ErrorCode.NOT_FOUND_ERROR);
+
         User loginUser = UserHolder.getUser();
         Long loginUserId = loginUser.getId();
         teamWall.setUserId(loginUserId);

@@ -104,4 +104,11 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     List<UserDTO> listTeamMember(Long teamId);
+
+    /**
+     * 获取当前用户创建的团队列表
+     * @param id
+     * @return
+     */
+    List<Team> listMyCreateTeam(Long id);
 }

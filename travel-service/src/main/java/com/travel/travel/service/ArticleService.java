@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.travel.travel.model.entity.ArticleDetail;
 import com.travel.travel.model.request.ArticleQueryRequest;
 
+import java.util.List;
+
 /**
 * @author jianping5
 * @description 针对表【article(文章表)】的数据库操作Service
@@ -69,5 +71,19 @@ public interface ArticleService extends IService<Article> {
      */
     boolean updateArticle(Article Article);
 
+    /**
+     * 根据文章数组获取文章视图体数组
+     * @param articleList
+     * @return
+     */
+    List<ArticleVO> getArticleVOList(List<Article> articleList);
 
+
+    /**
+     * 获取推荐游记（大众化推荐）
+     * @param current
+     * @param size
+     * @return
+     */
+    List<ArticleVO> listRcmdArticleVO(long current, long size);
 }

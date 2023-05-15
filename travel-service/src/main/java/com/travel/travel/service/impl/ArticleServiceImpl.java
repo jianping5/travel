@@ -3,6 +3,7 @@ package com.travel.travel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import com.travel.common.common.ErrorCode;
 import com.travel.common.constant.BehaviorTypeConstant;
 import com.travel.common.constant.TypeConstant;
@@ -20,8 +21,10 @@ import com.travel.travel.model.vo.ArticleVO;
 import com.travel.travel.service.ArticleDetailService;
 import com.travel.travel.service.ArticleService;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.redisson.api.RList;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,14 +46,22 @@ import java.util.stream.Collectors;
 @Service
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
     implements ArticleService , com.travel.common.service.ArticleService {
+
     @DubboReference
     private InnerUserService innerUserService;
+
     @Resource
     private ArticleDetailService articleDetailService;
-    @Resource()
+
+    @Resource
     private RedissonClient redissonClient;
+
     @Resource
     private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private Gson gson;
+
     @Override
     public void validArticle(Article article, boolean add) {
         if (article == null) {
@@ -65,8 +77,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
 
         // 创建时，参数不能为空
         if (add) {
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,location,detail,tag,intro), ErrorCode.PARAMS_ERROR);
-            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,tag,location,detail),ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,detail,tag,intro), ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,tag,detail),ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
         if (StringUtils.isNotBlank(detail) && detail.length() > 8192) {
@@ -153,6 +165,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
      * @param articleList
      * @return
      */
+    @Override
     public List<ArticleVO> getArticleVOList(List<Article> articleList) {
         // 获取用户 id 列表
         Set<Long> userIdSet = articleList.stream().map(Article::getUserId).collect(Collectors.toSet());
@@ -191,7 +204,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
             }
             articleVO.setDetailId(articleDetail.getId());
             //获取当前登录对象
-            User loginUser = UserHolder.getUser();
+            /*User loginUser = UserHolder.getUser();
             if(loginUser!=null){
                 Long loginUserId = loginUser.getId();
 
@@ -206,13 +219,52 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
                 // 注入关注状态
                 RSet<Long> followSet = redissonClient.getSet("travel:user:follow:"+ article.getUserId());
                 articleVO.setIsFollowed(followSet.contains(loginUserId)?1:0);
-            }
+            }*/
             return articleVO;
         }).collect(Collectors.toList());
 
         return articleVOList;
     }
-    
+
+    @Override
+    public List<ArticleVO> listRcmdArticleVO(long current, long size) {
+        // 创建团队视图体数组
+        List<ArticleVO> articleVOList = new ArrayList<>();
+
+        // 判断有无缓存
+        RList<String> articleVORList = redissonClient.getList("travel:travel:recommend");
+
+        // 若有，则直接从缓存中读取
+        if (org.apache.commons.collections4.CollectionUtils.isNotEmpty(articleVORList)) {
+            for (long i = current; i < size; i++) {
+                String json = articleVORList.get((int) i);
+                ArticleVO articleVO = gson.fromJson(json, ArticleVO.class);
+                articleVOList.add(articleVO);
+            }
+            return articleVOList;
+        }
+
+        // 若无，则从数据库中读取
+        QueryWrapper<Article> articleQueryWrapper = new QueryWrapper<>();
+        articleQueryWrapper.last("order by 5*like_count+3*favorite_count+2*view_count desc limit 50");
+
+        // 根据团队列表获取团队视图体列表
+        List<Article> articleList = this.list(articleQueryWrapper);
+        articleVOList = getArticleVOList(articleList);
+
+        // todo: 并将写缓存的任务添加到消息队列
+        // 定义交换机名称
+        String exchangeName = "travel.topic";
+
+        // 定义消息
+        String message = "cache.travel";
+
+        // 发送消息，让对应线程将数据写入缓存
+        rabbitTemplate.convertAndSend(exchangeName, "cache.travel", message);
+
+        return articleVOList;
+    }
+
     @Override
     public Page<Article> queryArticle(ArticleQueryRequest articleQueryRequest) {
         QueryWrapper<Article> queryWrapper = new QueryWrapper<>();
@@ -276,6 +328,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
 
         //todo:考虑事务
         // 添加到数据库中
+        article.setViewCount(RandomUtils.nextInt(0, 1000));
+        article.setFavoriteCount(RandomUtils.nextInt(0, 1000));
+
         boolean saveResult = this.save(article);
         ArticleDetail articleDetail = new ArticleDetail();
         articleDetail.setDetail(article.getDetail());
