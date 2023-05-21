@@ -61,10 +61,10 @@ public class TravelController {
         // 校验 Article 信息是否合法
         articleService.validArticle(article, true);
 
-        // 添加周边
+        // 添加Article
         Article newArticle = articleService.addArticle(article);
 
-        // 获取周边 id
+        // 获取Article Id
         long newArticleId = newArticle.getId();
 
         return ResultUtils.success(newArticleId);
@@ -148,15 +148,18 @@ public class TravelController {
     @PostMapping("/article/list/page/vo")
     @ApiOperation(value = "分页查询文章游记")
     public BaseResponse<Page<ArticleVO>> listArticleVOByPage(@RequestBody ArticleQueryRequest articleQueryRequest) {
-        if (articleQueryRequest == null) {
+        if (articleQueryRequest == null||articleQueryRequest.getQueryType()==null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Integer queryType = articleQueryRequest.getQueryType();
+        if(!queryType.equals(0)&&!queryType.equals(1)&&!queryType.equals(2)){
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR,"请求类型不存在");
         }
 
         long size = articleQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Article> articlePage = articleService.queryArticle(articleQueryRequest);
-
         return ResultUtils.success(articleService.getArticleVOPage(articlePage));
     }
 

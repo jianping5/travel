@@ -91,16 +91,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         String intro = team.getIntro();
         // todo: 这两者可以考虑使用默认值（若用户不传）
         String coverUrl = team.getCoverUrl();
-        String iconUrl = team.getIconUrl();
         // 创建时，参数不能为空
         if (add) {
             ThrowUtils.throwIf(StringUtils.isAnyBlank(teamName), ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
-        if (StringUtils.isNotBlank(teamName) && teamName.length() > 80) {
+        if (StringUtils.isNotBlank(teamName) && teamName.length() > 25) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "团队名称过长");
         }
-        if (StringUtils.isNotBlank(intro) && intro.length() > 8192) {
+        if (StringUtils.isNotBlank(intro) && intro.length() > 120) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "简介过长");
         }
     }
