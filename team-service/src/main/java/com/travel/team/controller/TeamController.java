@@ -58,7 +58,7 @@ public class TeamController {
      * @param teamAddRequest
      * @return
      */
-    @ApiOperation(value = "创建团队")
+    @ApiOperation(value = "测试创建团队")
     @PostMapping("/add/test")
     public BaseResponse<Team> testAddTeam(@RequestBody TeamAddRequest teamAddRequest, String token) {
         // 校验请求体

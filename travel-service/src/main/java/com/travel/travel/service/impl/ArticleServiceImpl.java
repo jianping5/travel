@@ -77,7 +77,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
 
         // 创建时，参数不能为空
         if (add) {
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,detail,tag,intro), ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(StringUtils.isAnyBlank(coverUrl,detail,tag,intro,title), ErrorCode.PARAMS_ERROR);
             ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,tag,detail),ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
