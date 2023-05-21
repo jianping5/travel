@@ -72,8 +72,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         String intro = article.getIntro();
         String coverUrl = article.getCoverUrl();
         String tag = article.getTag();
-        String location = article.getLocation();
         String detail = article.getDetail();
+        String title = article.getTitle();
 
         // 创建时，参数不能为空
         if (add) {
@@ -81,7 +81,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
             ThrowUtils.throwIf(ObjectUtils.anyNull(userId,intro,coverUrl,tag,detail),ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
-        if (StringUtils.isNotBlank(detail) && detail.length() > 8192) {
+        if (StringUtils.isNotBlank(title) && title.length() > 50) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
+        }
+        if (StringUtils.isNotBlank(detail) && detail.length() > 2000) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "详情过长");
         }
     }
@@ -320,7 +323,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
             //最新发布
             queryWrapper.orderByDesc("update_time");
         }
-        return page(new Page<Article>(current, pageSize), queryWrapper);
+        return page(new Page<>(current, pageSize), queryWrapper);
     }
 
     @Override

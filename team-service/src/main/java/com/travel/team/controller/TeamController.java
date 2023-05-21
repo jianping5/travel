@@ -198,6 +198,7 @@ public class TeamController {
         return ResultUtils.success(true);
     }
 
+
     /**
      * 根据 id 获取团队介绍详情
      *
@@ -211,13 +212,13 @@ public class TeamController {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
         Team team = teamService.getById(id);
         if (team == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return ResultUtils.success(teamService.getTeamVO(team));
     }
+
 
     /**
      * 分页获取团队列表（封装类）
