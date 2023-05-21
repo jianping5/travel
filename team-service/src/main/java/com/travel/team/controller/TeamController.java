@@ -59,6 +59,43 @@ public class TeamController {
      * @return
      */
     @ApiOperation(value = "创建团队")
+    @PostMapping("/add/test")
+    public BaseResponse<Team> testAddTeam(@RequestBody TeamAddRequest teamAddRequest, String token) {
+        // 校验请求体
+        if (teamAddRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 将 请求体的内容赋值到 team 中
+        Team team = new Team();
+        BeanUtils.copyProperties(teamAddRequest, team);
+
+        // 校验 team 信息是否合法
+        teamService.validTeam(team, true);
+
+        // 添加到团队中
+        Team newTeam = teamService.addTeam(team);
+
+        // 获取团队 id
+        long newTeamId = newTeam.getId();
+
+        // 并更新缓存
+        RMap<String, Object> map = redissonClient.getMap("user_login:" + token);
+        String teamIdListJson = (String) map.get("teamId");
+        System.out.println(teamIdListJson);
+        List<Long> teamIdList = gson.fromJson(teamIdListJson, new TypeToken<List<Long>>() {
+        }.getType());
+        teamIdList.add(newTeamId);
+        map.put("teamId", gson.toJson(teamIdList));
+
+        // 更新用户表中的团队字段
+        User loginUser = UserHolder.getUser();
+        Long loginUserId = loginUser.getId();
+        innerUserService.addUserTeamId(loginUserId, newTeamId);
+
+        return ResultUtils.success(newTeam);
+    }
+
+    @ApiOperation(value = "创建团队")
     @PostMapping("/add")
     public BaseResponse<Team> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         // 校验请求体

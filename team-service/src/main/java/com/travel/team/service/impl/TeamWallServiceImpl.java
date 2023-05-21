@@ -59,8 +59,8 @@ public class TeamWallServiceImpl extends ServiceImpl<TeamWallMapper, TeamWall>
             ThrowUtils.throwIf(StringUtils.isAnyBlank(content), ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
-        if (StringUtils.isNotBlank(content) && content.length() > 8192) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "评价过长");
+        if (StringUtils.isNotBlank(content) && content.length() > 50) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
         }
 
     }

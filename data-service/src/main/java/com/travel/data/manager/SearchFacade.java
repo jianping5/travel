@@ -50,6 +50,13 @@ public class SearchFacade {
         TypeConstant typeConstant = TypeConstant.getEnumByValue(type);
         ThrowUtils.throwIf(StringUtils.isBlank(type), ErrorCode.PARAMS_ERROR);
 
+        // 获取请求关键字，并校验
+        String searchText = searchRequest.getSearchText();
+        // 校验是否为空
+        ThrowUtils.throwIf(StringUtils.isBlank(searchText), ErrorCode.PARAMS_ERROR);
+        // 校验长度
+        ThrowUtils.throwIf(searchText.length() > 50, ErrorCode.PARAMS_ERROR);
+
         // 获取请求关键词，当前页码，页大小
         long current = searchRequest.getCurrent();
         long pageSize = searchRequest.getPageSize();

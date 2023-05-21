@@ -16,6 +16,7 @@ import com.travel.common.model.dto.user.UserDTO;
 import com.travel.common.model.entity.User;
 import com.travel.common.service.InnerTravelService;
 import com.travel.common.service.InnerUserService;
+import com.travel.common.utils.RegexUtils;
 import com.travel.common.utils.SqlUtils;
 import com.travel.common.utils.UserHolder;
 import com.travel.team.mapper.TeamMapper;
@@ -92,16 +93,30 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // todo: 这两者可以考虑使用默认值（若用户不传）
         String coverUrl = team.getCoverUrl();
         String iconUrl = team.getIconUrl();
+        if (StringUtils.isEmpty(coverUrl)) {
+            coverUrl = "https://p1-q.mafengwo.net/s19/M00/B2/3C/CoND0WQMEK8k0egOAACDIIkUhqg.jpeg?imageMogr2%2Fthumbnail%2F%21200x200r%2Fgravity%2FCenter%2Fcrop%2F%21200x200%2Fquality%2F90";
+            team.setCoverUrl(coverUrl);
+        }
+        if (StringUtils.isEmpty(iconUrl)) {
+            iconUrl = "https://p1-q.mafengwo.net/s19/M00/B2/3C/CoND0WQMEK8k0egOAACDIIkUhqg.jpeg?imageMogr2%2Fthumbnail%2F%21200x200r%2Fgravity%2FCenter%2Fcrop%2F%21200x200%2Fquality%2F90";
+            team.setIconUrl(iconUrl);
+        }
+
+        // 校验 URL 是否合法
+        boolean urlValid = RegexUtils.isUrlValid(coverUrl);
+        boolean urlValid1 = RegexUtils.isUrlValid(iconUrl);
+        ThrowUtils.throwIf(!urlValid || !urlValid1, ErrorCode.PARAMS_ERROR);
+
         // 创建时，参数不能为空
         if (add) {
             ThrowUtils.throwIf(StringUtils.isAnyBlank(teamName), ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
-        if (StringUtils.isNotBlank(teamName) && teamName.length() > 80) {
+        if (StringUtils.isNotBlank(teamName) && teamName.length() > 20) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "团队名称过长");
         }
-        if (StringUtils.isNotBlank(intro) && intro.length() > 8192) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "简介过长");
+        if (StringUtils.isNotBlank(intro) && intro.length() > 500) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "团队简介过长");
         }
     }
 
