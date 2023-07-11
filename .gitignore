@@ -24,7 +24,6 @@ application.yml
 *.md
 mvnw
 .mvn
-**/image/
 **/test/
 
 ### NetBeans ###
